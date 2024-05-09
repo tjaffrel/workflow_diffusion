@@ -11,8 +11,7 @@ and 0.7 bar CO2 at 413K (temperature swing adsorption).
 """
 import random
 import numpy as np
-from mofdiff.common.sys_utils import timeout
-from mofdiff.gcmc import gcmc_wrapper
+import gcmc_wrapper
 import re
 
 
@@ -85,7 +84,6 @@ def extract_raspa_output(raspa_output, has_N2=False):
 
         return adsorbed_CO2, heat_of_adsorption_CO2
 
-@timeout(36000)
 def working_capacity_vacuum_swing(cif_file, calc_charges=True,
                                   rundir='./temp', rewrite_raspa_input=False):
     random.seed(4)
