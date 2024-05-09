@@ -1,10 +1,10 @@
 import re
 import os
 from ase.io import read
-from raspa_ase import Raspa
 from math import cos, radians
 import random
 import numpy as np
+import gcmc_wrapper
 
 workdir = "/home/theoj/project/diffusion/workflow"
 cif_file = "MFI-SI.cif"
