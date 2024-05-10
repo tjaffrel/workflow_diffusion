@@ -30,6 +30,8 @@ class MofDiscovery(Maker):
     def make(
         self,
         structure : str | Structure,
+        metadata : dict | None,
+        aux_name : str | None,
     ) -> Flow:
         
         jobs : list[Job] = []
@@ -67,16 +69,27 @@ class MofDiscovery(Maker):
             jobs += [zeopp_final]
             output = zeopp_final.output
 
-        return Flow(jobs, output=output)
+        flow =  Flow(jobs, output=output)
+
+        if metadata is not None:
+            flow.update_metadata(metadata)
+
+        if aux_name is not None:
+            flow.append_name(aux_name,prepend=True)
+
+        return flow
     
 if __name__ == "__main__":
 
     from jobflow import run_locally
 
+    mof_name = "IRMOF-1"
     mdj = MofDiscovery(
         zeopp_path = "/Users/aaronkaplan/Dropbox/postdoc_MP/software/zeo++-0.3/network",
-        zeopp_nproc = 3
-    ).make("IRMOF-1.cif")
+        zeopp_nproc = 3,
+        metadata = {"MOF": mof_name},
+        aux_name = mof_name
+    ).make(f"{mof_name}.cif")
 
     resp = run_locally(mdj)
 
