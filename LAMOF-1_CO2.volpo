@@ -1,0 +1,3 @@
+@ LAMOF-1_CO2.volpo Unitcell_volume: 3712.69   Density: 0.801877   POAV_A^3: 2154.92 POAV_Volume_fraction: 0.58042 POAV_cm^3/g: 0.723827 PONAV_A^3: 0 PONAV_Volume_fraction: 0 PONAV_cm^3/g: 0
+PROBE_OCCUPIABLE_VOL_CALC: filename| density(g/cm3)| probe rad| N points| probe ctr A fract| probe ctr NA fract| A fract| NA fract| narrow fract |ovlp fract.
+PROBE_OCCUPIABLE___RESULT: LAMOF-1_CO2.volpo	0.801877	1.65	50000	0.2257	0	0.58042	0	0.09466	0.32492
