@@ -79,3 +79,15 @@ if __name__ == "__main__":
     ).make("IRMOF-1.cif")
 
     resp = run_locally(mdj)
+
+    # for fireworks, uncomment below, comment out the `run_locally` line above:
+    """
+    from jobflow.managers.fireworks import flow_to_workflow
+    from fireworks import LaunchPad
+
+    fw = flow_to_workflow(mdj)
+
+    lpad = LaunchPad.auto_load()
+    # lpad = LaunchPad.from_file(<path to> my_launchpad.yaml)
+    lpad.bulk_add_wfs([fw])
+    """
