@@ -64,7 +64,7 @@ class MofDiscoveryFLow(Maker):
         
         jobs : list[Job] = []
         mace_relax_job = self.ff_relax_maker.make(structure)
-        mace_relax_job.metadata = {"resources": "many-gpu", **job_meta}
+        mace_relax_job.metadata = {"job_type": "mace-relax", **job_meta}
         jobs += [mace_relax_job]
             
         self.tb_relax_maker_kwargs = self.tb_relax_maker_kwargs or {}
@@ -72,14 +72,14 @@ class MofDiscoveryFLow(Maker):
             mace_relax_job.output.output.structure.to_ase_atoms(),
             **self.tb_relax_maker_kwargs
         )
-        tb_relax_job.metadata = {"resources": "many-cpu", **job_meta}
+        tb_relax_job.metadata = {"job_type": "gfn-xtb-relax", **job_meta}
         jobs += [tb_relax_job]
         output = tb_relax_job.output
 
         if self.run_raspa:
             self.raspa_kwargs = self.raspa_kwargs or {}
             raspa_job = run_raspa(tb_relax_job.output["atoms"])
-            raspa_job.metadata = {"resources": "single-cpu", **job_meta}
+            raspa_job.metadata = {"job_type": "raspa", **job_meta}
             jobs += [raspa_job]
             output = raspa_job.output
 
