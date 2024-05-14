@@ -269,5 +269,5 @@ if __name__ == "__main__":
 
     from jobflow import run_locally
 
-    zeopp_job = run_zeopp_assessment(structure = "LAMOF-1.cif", zeopp_path = "/Users/aaronkaplan/Dropbox/postdoc_MP/software/zeo++-0.3/network")
+    zeopp_job = run_zeopp_assessment(structure = "LAMOF-1.cif", zeopp_path = "/home/theoj/programs/zeopp-lsmo/zeo++/network")
     resp = run_locally(zeopp_job)

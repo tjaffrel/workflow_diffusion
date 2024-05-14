@@ -20,7 +20,7 @@ class MofDiscovery(Maker):
     zeopp_nproc : int = 1,
     ff_relax_maker : Maker = field(
         default_factory = lambda : MACERelaxMaker(
-            model_kwargs = {
+            calculator_kwargs = {
                 #"model": "small",
                 "default_dtype": "float32",
                 "dispersion": True,
@@ -38,7 +38,6 @@ class MofDiscovery(Maker):
         aux_name : str | None = None,
     ) -> Flow:
         
-        print("look for me!", mof_assessment.get("is_mof") if isinstance(mof_assessment,dict) else mof_assessment)
                 
         if mof_assessment is None:
             if isinstance(structure, str):
@@ -84,7 +83,7 @@ class MofDiscovery(Maker):
                 zeopp_path = self.zeopp_path,
                 working_dir = None,
                 sorbates = self.sorbates,
-                cif_name = "zeopp_final.cif",
+                cif_name = cif_name,
                 nproc = self.zeopp_nproc
             )
             zeopp_final.name = "zeo++ MACE-relaxed structure"
@@ -105,16 +104,28 @@ def get_uuid_from_job(job, dct):
 if __name__ == "__main__":
 
     from jobflow import run_locally
+    from jobflow.managers.fireworks import flow_to_workflow
+    from glob import glob
 
-    mof_name = "IRMOF-1"
-    mdj = MofDiscovery(
-        zeopp_path = "/Users/aaronkaplan/Dropbox/postdoc_MP/software/zeo++-0.3/network",
-        zeopp_nproc = 3,
-    ).make(
-        structure = f"{mof_name}.cif",
-        metadata = {"MOF": mof_name, "job_info": "mof discovery"},
-        aux_name = mof_name
-    )
+    list_cif = glob("/home/theoj/project/diffusion/diffusion_MOF_v1/*.cif")
+    wfs = []
+    for cif in list_cif[:10]:
+        mof_name = cif.split("/")[-1].split(".")[0]
+        mdj = MofDiscovery(
+            zeopp_nproc = 3
+        ).make(
+            structure = cif,
+            metadata = {"MOF": mof_name, "job_info": "mof discovery"},
+            aux_name = mof_name + " "
+        )
+        wfs.append(flow_to_workflow(mdj))
+
+    from fireworks import LaunchPad
+
+    lpad = LaunchPad.from_file("/home/theoj/fw_config/my_launchpad.yaml")#"/global/homes/t/theoj/fw_configs/zeopp/my_launchpad.yaml")
+    lpad.bulk_add_wfs(wfs)
+
+    """
 
     response = run_locally(mdj)
 
@@ -130,15 +141,14 @@ if __name__ == "__main__":
         for uuid, name in uuid_to_name.items() 
         if not isinstance(response[uuid],Response)
     }
+    """
     
     # for fireworks, uncomment below, comment out the `run_locally` line above:
-    """
-    from jobflow.managers.fireworks import flow_to_workflow
-    from fireworks import LaunchPad
+    #from jobflow.managers.fireworks import flow_to_workflow
+    #from fireworks import LaunchPad
 
-    fw = flow_to_workflow(mdj)
+    #fw = flow_to_workflow(mdj)
 
-    lpad = LaunchPad.auto_load()
-    # lpad = LaunchPad.from_file(<path to> my_launchpad.yaml)
-    lpad.bulk_add_wfs([fw])
-    """
+    #lpad = LaunchPad.auto_load()
+    #lpad = LaunchPad.from_file("/home/theoj/fw_config/my_launchpad.yaml")
+    #lpad.bulk_add_wfs([fw])

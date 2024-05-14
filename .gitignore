@@ -2,3 +2,7 @@
 **/*.res
 **/*.volpo
 **/*.cif
+**/__pycache__
+*.ipynb
+*.stdout
+*.stderr
