@@ -262,12 +262,12 @@ def run_zeopp_assessment(
 
     return output
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
 
-    #zpp_res = ZeoPlusPlus(cif_path="IRMOF-1.cif", zeopp_path = "/Users/aaronkaplan/Dropbox/postdoc_MP/software/zeo++-0.3/network")
-    #zpp_res.run(zeopp_args=["-ha", "-res"], nproc = 3)
+#    #zpp_res = ZeoPlusPlus(cif_path="IRMOF-1.cif", zeopp_path = "/Users/aaronkaplan/Dropbox/postdoc_MP/software/zeo++-0.3/network")
+#    #zpp_res.run(zeopp_args=["-ha", "-res"], nproc = 3)
 
-    from jobflow import run_locally
+#    from jobflow import run_locally
 
-    zeopp_job = run_zeopp_assessment(structure = "LAMOF-1.cif", zeopp_path = "/home/theoj/programs/zeopp-lsmo/zeo++/network")
-    resp = run_locally(zeopp_job)
+#    zeopp_job = run_zeopp_assessment(structure = "LAMOF-1.cif", zeopp_path = "/home/theoj/programs/zeopp-lsmo/zeo++/network")
+#    resp = run_locally(zeopp_job)

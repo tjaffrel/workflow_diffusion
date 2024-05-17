@@ -22,8 +22,11 @@ class MofDiscovery(Maker):
         default_factory = lambda : MACERelaxMaker(
             calculator_kwargs = {
                 #"model": "small",
-                "default_dtype": "float32",
+                "default_dtype": "float64",
                 "dispersion": True,
+            },
+            task_document_kwargs = {
+                "store_trajectory": "no",
             }
         )
     )
@@ -38,7 +41,7 @@ class MofDiscovery(Maker):
         aux_name : str | None = None,
     ) -> Flow:
         
-                
+        
         if mof_assessment is None:
             if isinstance(structure, str):
                 cif_name = os.path.basename(structure)
@@ -109,7 +112,7 @@ if __name__ == "__main__":
 
     list_cif = glob("/home/theoj/project/diffusion/diffusion_MOF_v1/*.cif")
     wfs = []
-    for cif in list_cif[:10]:
+    for cif in list_cif[:5]:
         mof_name = cif.split("/")[-1].split(".")[0]
         job_meta = {"MOF": mof_name, "job_info": "mof discovery"}
         mdj = MofDiscovery(
