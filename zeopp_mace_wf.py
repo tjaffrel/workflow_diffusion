@@ -17,7 +17,7 @@ class MofDiscovery(Maker):
     name : str = "MOF discovery zeo++ / MACE"
     zeopp_path : str | None = None
     sorbates : list[str] | str = field(default_factory= lambda : ["N2", "CO2", "H2O"])
-    zeopp_nproc : int = 1,
+    zeopp_nproc : int = 1
     ff_relax_maker : Maker = field(
         default_factory = lambda : MACERelaxMaker(
             calculator_kwargs = {
@@ -40,8 +40,7 @@ class MofDiscovery(Maker):
         metadata : dict | None = None,
         aux_name : str | None = None,
     ) -> Flow:
-        
-        
+                
         if mof_assessment is None:
             if isinstance(structure, str):
                 cif_name = os.path.basename(structure)
@@ -56,7 +55,7 @@ class MofDiscovery(Maker):
                 nproc = self.zeopp_nproc
             )
             zeopp_init.name = "zeo++ input structure"
-            zeopp_init.metadata = {"job_type": "zeo++"}
+            #zeopp_init.metadata = {"job_type": "zeo++"}
 
             mace_jobs = self.make(
                 structure = structure,
@@ -79,7 +78,7 @@ class MofDiscovery(Maker):
         elif mof_assessment.get("is_mof", False):
 
             mace_relax = self.ff_relax_maker.make(structure)
-            mace_relax.metadata = {"job_type": "mace-relax"}
+            #mace_relax.metadata = {"job_type": "mace-relax"}
 
             zeopp_final = run_zeopp_assessment(
                 structure = mace_relax.output.structure,
@@ -106,13 +105,13 @@ def get_uuid_from_job(job, dct):
 
 if __name__ == "__main__":
 
-    from jobflow import run_locally
+    #from jobflow import run_locally
     from jobflow.managers.fireworks import flow_to_workflow
     from glob import glob
 
     list_cif = glob("/home/theoj/project/diffusion/diffusion_MOF_v1/*.cif")
     wfs = []
-    for cif in list_cif[:5]:
+    for cif in list_cif[:1]:
         mof_name = cif.split("/")[-1].split(".")[0]
         job_meta = {"MOF": mof_name, "job_info": "mof discovery"}
         mdj = MofDiscovery(
