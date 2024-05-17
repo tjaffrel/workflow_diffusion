@@ -111,14 +111,19 @@ if __name__ == "__main__":
     wfs = []
     for cif in list_cif[:10]:
         mof_name = cif.split("/")[-1].split(".")[0]
+        job_meta = {"MOF": mof_name, "job_info": "mof discovery"}
         mdj = MofDiscovery(
             zeopp_nproc = 3
         ).make(
             structure = cif,
-            metadata = {"MOF": mof_name, "job_info": "mof discovery"},
+            metadata = job_meta,
             aux_name = mof_name + " "
         )
-        wfs.append(flow_to_workflow(mdj))
+        mdj.update_metadata( job_meta)
+        mdj.append_name( mof_name + " ",prepend=True)
+        fw = flow_to_workflow(mdj)
+        fw.metadata = job_meta
+        wfs.append(fw)
 
     from fireworks import LaunchPad
 
