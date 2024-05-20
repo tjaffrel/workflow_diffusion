@@ -65,6 +65,7 @@ class MofDiscovery(Maker):
         elif mof_assessment.get("zeo++ initial",{}).get("is_mof", False):
 
             mace_relax = self.ff_relax_maker.make(structure)
+            mace_relax.name = "MACE relax"
 
             zeopp_final = run_zeopp_assessment(
                 structure = mace_relax.output.structure,

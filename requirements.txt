@@ -1,0 +1,3 @@
+torch_dftd>=0.4.0
+mace_torch>=0.3.4
+git+https://gitlab.com/ase/ase.git

@@ -91,4 +91,5 @@ def tji_run_all_cifs(
 
 if __name__ == "__main__":
 
-    flow_output = _adk_debug_locally()
+    #flow_output = _adk_debug_locally()
+    _adk_debug_remotely()
