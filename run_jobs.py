@@ -38,7 +38,7 @@ def _adk_debug_locally(
     } 
    
 def _adk_debug_remotely(
-    cif_name : str = "../theoretical_cifs/Al16H46C96O96-0.cif",#"IRMOF-1.cif",
+    cif_name : str = "IRMOF-1.cif",
     lpad_file : str = "/Users/aaronkaplan/fw_config/wf_dev/my_launchpad.yaml"
 ) -> None:
     from fireworks import LaunchPad
@@ -91,5 +91,5 @@ def tji_run_all_cifs(
 
 if __name__ == "__main__":
 
-    #flow_output = _adk_debug_locally()
-    _adk_debug_remotely()
+    #flow_output = _adk_debug_locally(cif_name = "../theoretical_cifs/Al16H46C96O96-0.cif")
+    _adk_debug_remotely(cif_name = "../theoretical_cifs/Al16H46C96O96-0.cif")

@@ -63,13 +63,26 @@ class MofDiscovery(Maker):
             output = mace_jobs.output
             replace = Flow([zeopp_init, mace_jobs], output = output)
         
-        elif mof_assessment.get("zeo++ initial",{}).get("is_mof", False):
+        elif (
+            mof_assessment.get("zeo++ initial",{}).get("is_mof", False)
+            and ("MACE_force_converged" not in mof_assessment)
+        ):
 
             mace_relax = self.ff_relax_maker.make(structure)
             mace_relax.name = "MACE relax"
-
-            zeopp_final = run_zeopp_assessment(
+            mof_assessment.update({
+                "MACE_force_converged": mace_relax.output.is_force_converged
+            })
+            output = mace_relax.output
+            recursive = self.make(
                 structure = mace_relax.output.structure,
+                mof_assessment = mof_assessment,
+            )
+            replace = Flow([mace_relax, recursive], output=output)
+
+        elif mof_assessment.get("MACE_force_converged",False):
+            zeopp_final = run_zeopp_assessment(
+                structure = structure,
                 zeopp_path = self.zeopp_path,
                 working_dir = None,
                 sorbates = self.sorbates,
@@ -77,9 +90,8 @@ class MofDiscovery(Maker):
                 nproc = self.zeopp_nproc
             )
             zeopp_final.name = "zeo++ mace-relaxed structure"
-            mof_assessment["zeo++ final"] = zeopp_final.output
 
             output = zeopp_final.output
-            replace = Flow([mace_relax, zeopp_final],output=output)
+            replace = zeopp_final
         
         return Response(replace=replace, output = output)
