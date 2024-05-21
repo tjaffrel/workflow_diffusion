@@ -26,6 +26,7 @@ class MofDiscovery(Maker):
             },
             task_document_kwargs = {
                 "store_trajectory": "no",
+                "ionic_step_data": ("energy",)
             }
         )
     )
