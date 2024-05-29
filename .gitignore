@@ -4,7 +4,7 @@
 **/*.cif
 test_cifs
 **/__pycache__
-*.ipynb
+# *.ipynb
 *.stdout
 *.stderr
 workflow_output
