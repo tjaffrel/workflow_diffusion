@@ -2,7 +2,9 @@
 **/*.res
 **/*.volpo
 **/*.cif
+test_cifs
 **/__pycache__
 *.ipynb
 *.stdout
 *.stderr
+workflow_output
