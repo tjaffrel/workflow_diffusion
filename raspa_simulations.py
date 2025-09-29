@@ -6,19 +6,22 @@ import random
 import numpy as np
 import gcmc_wrapper
 
+from raspa_ase.calculator import Raspa
+
 workdir = "/home/theoj/project/diffusion/workflow"
 cif_file = "MFI-SI.cif"
 atoms = read(cif_file)
-forcefield="Dubbeldam2007FlexibleIRMOF-1"
-forcefield_cutoff=9
+forcefield = "Dubbeldam2007FlexibleIRMOF-1"
+forcefield_cutoff = 9
 
 
 output_dir = os.path.join(workdir, "Output", "System_0")
 file_list = os.listdir(output_dir)
 raspa_log = [item for item in file_list if re.match(r".*\.data", item)][0]
 
-with open(os.path.join(output_dir, raspa_log), "r") as log:
+with open(os.path.join(output_dir, raspa_log)) as log:
     simulation = log.read()
+
 
 def extract_raspa_output(raspa_output):
     final_loading_section = re.findall(
@@ -43,30 +46,29 @@ def extract_raspa_output(raspa_output):
         enthalpy_of_adsorption_section,
         re.DOTALL,
     )[0]
-    # convertion to kcal per mol
-    enthalpy_of_adsorption = float(
-        re.findall(r"(?<=\[K\])\s*-?\d*\.\d*", enthalpy_subsection)[0]
-    ) * 0.239 
+    # conversion to kcal per mol
+    enthalpy_of_adsorption = (
+        float(re.findall(r"(?<=\[K\])\s*-?\d*\.\d*", enthalpy_subsection)[0]) * 0.239
+    )
     heat_of_adsorption = -1 * enthalpy_of_adsorption
 
     return adsorbed, heat_of_adsorption
+
 
 def calculate_unit_cells(forcefield_cutoff, cif_file):
     perpendicular_length = [0, 0, 0]
     dim = [0, 0, 0]
     angle = [0, 0, 0]
-    with open(cif_file, "r") as file:
-        dim_match = re.findall("_cell_length_.\s+\d+.\d+", file.read())
-    with open(cif_file, "r") as file:
-        angle_match = re.findall("_cell_angle_\S+\s+\d+", file.read())
+    with open(cif_file) as file:
+        dim_match = re.findall(r"_cell_length_.\s+\d+.\d+", file.read())
+    with open(cif_file) as file:
+        angle_match = re.findall(r"_cell_angle_\S+\s+\d+", file.read())
     for i in range(3):
-        dim[i] = float(re.findall("\d+.\d+", dim_match[i])[0])
-        angle[i] = float(re.findall("\d+", angle_match[i])[0])
+        dim[i] = float(re.findall(r"\d+.\d+", dim_match[i])[0])
+        angle[i] = float(re.findall(r"\d+", angle_match[i])[0])
 
     for i in range(3):
-        perpendicular_length[i] = dim[i] * abs(
-            cos(radians(angle[i] - 90))
-        )
+        perpendicular_length[i] = dim[i] * abs(cos(radians(angle[i] - 90)))
 
     unit_cells = [1, 1, 1]
 
@@ -76,8 +78,10 @@ def calculate_unit_cells(forcefield_cutoff, cif_file):
 
     return unit_cells
 
-def working_capacity_vacuum_swing(cif_file, calc_charges=True,
-                                  rundir='./temp', rewrite_raspa_input=False):
+
+def working_capacity_vacuum_swing(
+    cif_file, calc_charges=True, rundir="./temp", rewrite_raspa_input=False
+):
     random.seed(4)
     np.random.seed(4)
     # adsorption conditions
@@ -111,7 +115,7 @@ def working_capacity_vacuum_swing(cif_file, calc_charges=True,
         pressure=10000,  # 10000 # 0.1 bar
         rundir=rundir,
     )
-    
+
     if calc_charges:
         gcmc_wrapper.calculate_mepo_qeq_charges(residual)
     gcmc_wrapper.run_gcmc_simulation(
@@ -134,6 +138,7 @@ def working_capacity_vacuum_swing(cif_file, calc_charges=True,
 
     return output
 
+
 def run_or_fail(cif_path):
     try:
         return working_capacity_vacuum_swing(cif_path)
@@ -144,7 +149,7 @@ def run_or_fail(cif_path):
 
 unit_cells = calculate_unit_cells(forcefield_cutoff, cif_file)
 
-atoms.info = {  
+atoms.info = {
     "UnitCells": unit_cells,
     "ExternalTemperature": 300.0,
     "FrameworkName": "IRMOF-1",
@@ -153,8 +158,8 @@ atoms.info = {
 parameters = {
     "SimulationType": "Minimization",
     "NumberOfCycles": 1,
-    "PrintEvery" : 1,
-    "MaximumNumberOfMinimizationSteps" : 1000,
+    "PrintEvery": 1,
+    "MaximumNumberOfMinimizationSteps": 1000,
     "Forcefield": forcefield,
     "RMSGradientTolerance": 1e-4,
     "MaxGradientTolerance": 1e-4,
@@ -169,4 +174,4 @@ parameters = {
 }
 
 print(parameters, atoms.info)
-calc = Raspa(parameters=parameters)
+calc = Raspa(parameters=parameters)  # noqa

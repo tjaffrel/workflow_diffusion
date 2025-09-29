@@ -22,6 +22,7 @@ zeo_path = os.getenv("ZEO_PATH")
 egulp_path = os.getenv("EGULP_PATH")
 egulp_parameter_path = os.getenv("EGULP_PARAMETER_PATH")
 
+
 class gcmc_simulation:
     def __init__(
         self,
@@ -32,17 +33,16 @@ class gcmc_simulation:
         pressure=101325,
         rundir="./temp",
     ):
-
         self.sorbent = next(readfile("cif", cif_file))
         self.dim = [0, 0, 0]
         self.angle = [0, 0, 0]
-        with open(cif_file, "r") as file:
-            dim_match = re.findall("_cell_length_.\s+\d+.\d+", file.read())
-        with open(cif_file, "r") as file:
-            angle_match = re.findall("_cell_angle_\S+\s+\d+", file.read())
+        with open(cif_file) as file:
+            dim_match = re.findall(r"_cell_length_.\s+\d+.\d+", file.read())
+        with open(cif_file) as file:
+            angle_match = re.findall(r"_cell_angle_\S+\s+\d+", file.read())
         for i in range(3):
-            self.dim[i] = float(re.findall("\d+.\d+", dim_match[i])[0])
-            self.angle[i] = float(re.findall("\d+", angle_match[i])[0])
+            self.dim[i] = float(re.findall(r"\d+.\d+", dim_match[i])[0])
+            self.angle[i] = float(re.findall(r"\d+", angle_match[i])[0])
 
         self.identifier = (
             ".".join(cif_file.split("/")[-1].split(".")[:-1])
@@ -53,23 +53,21 @@ class gcmc_simulation:
         self.rundir = Path(rundir)
         Path(rundir).mkdir(parents=True, exist_ok=True)
         assert self.rundir.exists(), "must provide an existing rundir."
-        self.sorbent_file = str(cif_file)
+        self.sorbent_file = str(cif_file)  # noqa
 
-        self.sorbates = sorbates  
+        self.sorbates = sorbates
         self.sorbates_mol_fraction = [
             i / sum(sorbates_mol_fraction) for i in sorbates_mol_fraction
-        ]  
-        self.temperature = temperature  
-        self.pressure = pressure 
+        ]
+        self.temperature = temperature
+        self.pressure = pressure
 
-        self.block_files = None 
+        self.block_files = None
 
-        self.helium_void_fraction = 1.0  
-        self.rosenbluth_weights = [
-            1.0 for i in range(len(sorbates))
-        ] 
-        self.raspa_config = None  
-        self.raspa_output = None  
+        self.helium_void_fraction = 1.0
+        self.rosenbluth_weights = [1.0 for i in range(len(sorbates))]
+        self.raspa_config = None
+        self.raspa_output = None
 
     def get_sorbate_radius(self, sorbate):
         # sorbate kinetic diameters in Angstrom
@@ -109,7 +107,6 @@ class gcmc_simulation:
             print(e)
             exit()
 
-
     def calculate_unit_cells(self, forcefield_cutoff):
         perpendicular_length = [0, 0, 0]
 
@@ -130,6 +127,7 @@ class gcmc_simulation:
         with open(output_path, "w") as log_file:
             log_file.write(self.raspa_output)
 
+
 # assigns charges to the atoms in the simulation file using the MEPO Qeq charge equilibration method
 def calculate_mepo_qeq_charges(simulation, egulp_parameter_set="MEPO"):
     simulation.sorbent_file = str(simulation.rundir / f"{simulation.identifier}.cif")
@@ -148,9 +146,7 @@ def calculate_mepo_qeq_charges(simulation, egulp_parameter_set="MEPO"):
             point_charges_present 0
             include_pceq 0
             imethod 0
-            """.format(
-            **locals()
-        )
+            """.format(**locals())
     ).strip()
 
     with open(rundir / "temp_config.input", "w") as file:
@@ -182,40 +178,37 @@ def run_gcmc_simulation(
     cleanup=False,
     rewrite_raspa_input=False,
 ):
-
     shutil.copy(simulation.sorbent_file, raspa_path + "/share/raspa/structures/cif/")
     workdir = simulation.rundir / "raspa_output" / simulation.identifier
     workdir.mkdir(exist_ok=True, parents=True)
 
-    sorbent_file = ".".join(simulation.sorbent_file.split("/")[-1].split(".")[:-1])
+    sorbent_file = ".".join(simulation.sorbent_file.split("/")[-1].split(".")[:-1])  # noqa
 
     if sum(unit_cells) == 0:
         unit_cells = simulation.calculate_unit_cells(forcefield_cutoff)
 
     simulation.raspa_params = {
-    "SimulationType": "MonteCarlo",
-    "NumberOfCycles": production_cycles,
-    "NumberOfInitializationCycles": initialization_cycles,
-    "NumberOfEquilibrationCycles": equilibration_cycles,
-    "PrintEvery": 1000,
-    "Forcefield": forcefield,
-    "UseChargesFromCIFFile": "yes",
-    "CutOffVDW": forcefield_cutoff,
-    "CutOffChargeCharge": forcefield_cutoff,
-    "CutOffChargeBondDipole": forcefield_cutoff,
-    "CutOffBondDipoleBondDipole": forcefield_cutoff,
-    "ChargeMethod": "Ewald",
-    "EwaldPrecision": 1e-6
+        "SimulationType": "MonteCarlo",
+        "NumberOfCycles": production_cycles,
+        "NumberOfInitializationCycles": initialization_cycles,
+        "NumberOfEquilibrationCycles": equilibration_cycles,
+        "PrintEvery": 1000,
+        "Forcefield": forcefield,
+        "UseChargesFromCIFFile": "yes",
+        "CutOffVDW": forcefield_cutoff,
+        "CutOffChargeCharge": forcefield_cutoff,
+        "CutOffChargeBondDipole": forcefield_cutoff,
+        "CutOffBondDipoleBondDipole": forcefield_cutoff,
+        "ChargeMethod": "Ewald",
+        "EwaldPrecision": 1e-6,
     }
-
 
     simulation.raspa_atoms_info = {
-    "UnitCells": f"{unit_cells[0]} {unit_cells[1]} {unit_cells[2]}",
-    "HeliumVoidFraction": simulation.helium_void_fraction,
-    "ExternalTemperature": simulation.temperature,
-    "ExternalPressure": simulation.pressure
+        "UnitCells": f"{unit_cells[0]} {unit_cells[1]} {unit_cells[2]}",
+        "HeliumVoidFraction": simulation.helium_void_fraction,
+        "ExternalTemperature": simulation.temperature,
+        "ExternalPressure": simulation.pressure,
     }
-
 
     total_sorbates = len(simulation.sorbates)
 
@@ -253,7 +246,7 @@ def run_gcmc_simulation(
             "RotationProbability": 0.5,
             "ReinsertionProbability": 0.5,
             "SwapProbability": 1.0,
-            "CreateNumberOfMolecules": 0
+            "CreateNumberOfMolecules": 0,
         }
 
         if block_file_line:
@@ -261,12 +254,14 @@ def run_gcmc_simulation(
 
         simulation.raspa_components.append(component_dict)
 
-    calc = Raspa(components=simulation.raspa_components, parameters=simulation.raspa_params)
+    calc = Raspa(  # noqa
+        components=simulation.raspa_components, parameters=simulation.raspa_params
+    )
 
     file_list = os.listdir(str(workdir / "Output" / "System_0"))
     raspa_log = [item for item in file_list if re.match(r".*\.data", item)][0]
 
-    with open(str(workdir / "Output" / "System_0" / raspa_log), "r") as log:
+    with open(str(workdir / "Output" / "System_0" / raspa_log)) as log:
         simulation.raspa_output = log.read()
 
     if cleanup:

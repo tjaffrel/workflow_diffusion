@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import os
@@ -14,23 +13,22 @@ from jobflow import job
 if TYPE_CHECKING:
     from typing import Any
 
+
 class ZeoPlusPlus:
-    """TODO add docstr
-    """
+    """TODO add docstr"""
 
     def __init__(
         self,
-        cif_path : str,
-        zeopp_path : str | None = None,
-        working_dir : str | None = None,
-        sorbates : list[str] | str = ["N2", "CO2", "H2O"],
+        cif_path: str,
+        zeopp_path: str | None = None,
+        working_dir: str | None = None,
+        sorbates: list[str] | str = ["N2", "CO2", "H2O"],
     ) -> None:
-        
         self._cif_path = cif_path
         self.cif_name = os.path.basename(cif_path.split(".cif")[0])
         self.zeopp_path = zeopp_path or which("zeo++") or os.environ.get("ZEO_PATH")
 
-        if isinstance(sorbates,str):
+        if isinstance(sorbates, str):
             sorbates = [sorbates]
         self.sorbates = sorbates
 
@@ -40,25 +38,21 @@ class ZeoPlusPlus:
     @classmethod
     def from_structure(
         cls,
-        structure : Structure,
-        cif_path : str,
-        zeopp_path : str | None = None,
-        working_dir : str | None = None,
-        sorbates : list[str] | str = ["N2", "CO2", "H2O"],
+        structure: Structure,
+        cif_path: str,
+        zeopp_path: str | None = None,
+        working_dir: str | None = None,
+        sorbates: list[str] | str = ["N2", "CO2", "H2O"],
     ):
         structure.to(cif_path)
         return cls(
-            cif_path = cif_path,
-            zeopp_path = zeopp_path,
-            working_dir = working_dir,
-            sorbates = sorbates
+            cif_path=cif_path,
+            zeopp_path=zeopp_path,
+            working_dir=working_dir,
+            sorbates=sorbates,
         )
 
-    def run(
-        self,
-        zeopp_args : list[str] | None = None,
-        nproc : int = 1
-    ):
+    def run(self, zeopp_args: list[str] | None = None, nproc: int = 1):
         nproc = min(nproc, len(self.sorbates))
 
         sorbate_batches = [[] for _ in range(nproc)]
@@ -74,8 +68,8 @@ class ZeoPlusPlus:
         procs = []
         for iproc in range(nproc):
             proc = multiprocessing.Process(
-                target = self._run_zeopp_many,
-                kwargs = {
+                target=self._run_zeopp_many,
+                kwargs={
                     "sorbates": sorbate_batches[iproc],
                     "file_paths_shared": output_file_path,
                     "output_shared": output,
@@ -93,12 +87,25 @@ class ZeoPlusPlus:
         self.output_file_path = dict(output_file_path)
         self.output = dict(output)
 
-    def _run_zeopp_many(self, sorbates: list[str], file_paths_shared : dict, output_shared : dict, zeopp_args : list[str] | None = None):
+    def _run_zeopp_many(
+        self,
+        sorbates: list[str],
+        file_paths_shared: dict,
+        output_shared: dict,
+        zeopp_args: list[str] | None = None,
+    ):
         for sorbate in sorbates:
-            self._run_zeopp_single(sorbate, file_paths_shared, output_shared, zeopp_args = zeopp_args)
-        
-    def _run_zeopp_single(self, sorbate : str, file_paths_shared : dict, output_shared : dict, zeopp_args : list[str] | None = None):
+            self._run_zeopp_single(
+                sorbate, file_paths_shared, output_shared, zeopp_args=zeopp_args
+            )
 
+    def _run_zeopp_single(
+        self,
+        sorbate: str,
+        file_paths_shared: dict,
+        output_shared: dict,
+        zeopp_args: list[str] | None = None,
+    ):
         radius_sorbate = self.get_sorbate_radius(sorbate)
 
         # check if zeopp_args contains -res
@@ -106,11 +113,19 @@ class ZeoPlusPlus:
         parse_func = None
         flag_to_func = {"res": self._parse_res, "volpo": self._parse_volpo}
 
-        zeopp_args = zeopp_args or ["-ha", "-volpo", str(radius_sorbate),  str(radius_sorbate), "50000"]
+        zeopp_args = zeopp_args or [
+            "-ha",
+            "-volpo",
+            str(radius_sorbate),
+            str(radius_sorbate),
+            "50000",
+        ]
 
         for flag, _func in flag_to_func.items():
             if f"-{flag}" in zeopp_args:
-                output_file_path = os.path.join(self.working_dir,self.cif_name) + f"_{sorbate}.{flag}"
+                output_file_path = (
+                    os.path.join(self.working_dir, self.cif_name) + f"_{sorbate}.{flag}"
+                )
                 parse_func = _func
 
         zeopp_args = [self.zeopp_path] + zeopp_args + [output_file_path, self._cif_path]
@@ -127,11 +142,13 @@ class ZeoPlusPlus:
                     f"{self._zeopp_path} exit code: {proc.returncode}, error: {stderr!s}."
                     f"\nstdout: {stdout!s}. Please check your zeo++ installation."
                 )
-                    
+
         output = parse_func(output_file_path)
 
         if output == {}:
-            raise ValueError(f"zeopp_args must contain either -res or -volpo, not {zeopp_args}")
+            raise ValueError(
+                f"zeopp_args must contain either -res or -volpo, not {zeopp_args}"
+            )
 
         try:
             output["structure"] = Structure.from_file(self._cif_path)
@@ -140,11 +157,10 @@ class ZeoPlusPlus:
 
         file_paths_shared[sorbate] = output_file_path
         output_shared[sorbate] = output
-                        
-    @staticmethod
-    def _parse_volpo(volpo_path : str) -> dict[str,Any]:
 
-        with open(volpo_path,"r") as f:
+    @staticmethod
+    def _parse_volpo(volpo_path: str) -> dict[str, Any]:
+        with open(volpo_path) as f:
             data = f.read().split("\n")
 
         output = {}
@@ -156,7 +172,6 @@ class ZeoPlusPlus:
 
             read_value = False
             for val in line.split():
-
                 if ":" in val:
                     key = val.split(":")[0]
                     read_value = True
@@ -169,13 +184,13 @@ class ZeoPlusPlus:
                     read_value = False
 
         return output
-    
+
     @staticmethod
     def _parse_res(res_path: str) -> dict[str, Any]:
-        with open(res_path, "r") as f:
+        with open(res_path) as f:
             data = f.read().split()
-        return {"LCD": float(data[1]), f"PLD": float(data[2])}
-    
+        return {"LCD": float(data[1]), "PLD": float(data[2])}
+
     @staticmethod
     def get_sorbate_radius(sorbate):
         # sorbate kinetic diameters in Angstrom
@@ -211,55 +226,66 @@ class ZeoPlusPlus:
         # check sorbate is present and return radius
         try:
             return kinetic_diameter[sorbate] * 0.5
-        except Exception as e:
+        except Exception:
             print("Unknown sorbate " + sorbate + ".")
-        
+
+
 @job
 def run_zeopp_assessment(
-    structure : Structure | str,
-    zeopp_path : str | None = None,
-    working_dir : str | None = None,
-    sorbates : list[str] | str = ["N2", "CO2", "H2O"],
-    cif_name : str | None = None,
-    nproc : int = 1
+    structure: Structure | str,
+    zeopp_path: str | None = None,
+    working_dir: str | None = None,
+    sorbates: list[str] | str = ["N2", "CO2", "H2O"],
+    cif_name: str | None = None,
+    nproc: int = 1,
 ) -> dict[str, Any]:
-    
-    if isinstance(structure,str) and os.path.isfile(structure):
+    if isinstance(structure, str) and os.path.isfile(structure):
         maker = ZeoPlusPlus(
             cif_path=structure,
-            zeopp_path = zeopp_path,
-            working_dir= working_dir,
-            sorbates=sorbates
+            zeopp_path=zeopp_path,
+            working_dir=working_dir,
+            sorbates=sorbates,
         )
 
     elif isinstance(structure, Structure):
         cif_name = cif_name or "structure.cif"
         maker = ZeoPlusPlus.from_structure(
-            structure = structure,
+            structure=structure,
             cif_path=cif_name,
-            zeopp_path = zeopp_path,
-            working_dir= working_dir,
-            sorbates=sorbates
+            zeopp_path=zeopp_path,
+            working_dir=working_dir,
+            sorbates=sorbates,
         )
-    
-    output = {sorbate: {} for sorbate in sorbates} 
+
+    output = {sorbate: {} for sorbate in sorbates}
     for args in [[], ["-ha", "-res"]]:
-        maker.run(zeopp_args = args,nproc = nproc)
+        maker.run(zeopp_args=args, nproc=nproc)
         for sorbate in sorbates:
             output[sorbate].update(maker.output[sorbate])
 
     output["is_mof"] = False
-    if all( k in output["N2"] for k in ("PLD", "POAV_A^3", "PONAV_A^3", "POAV_Volume_fraction", "PONAV_Volume_fraction")):
+    if all(
+        k in output["N2"]
+        for k in (
+            "PLD",
+            "POAV_A^3",
+            "PONAV_A^3",
+            "POAV_Volume_fraction",
+            "PONAV_Volume_fraction",
+        )
+    ):
         output["is_mof"] = (
-            output["N2"]["PLD"] > 2.5 and
-            output["N2"]["POAV_Volume_fraction"] > 0.3 and
-            output["N2"]["POAV_A^3"] > output["N2"]["PONAV_A^3"] and
-            output["N2"]["POAV_Volume_fraction"] > output["N2"]["PONAV_Volume_fraction"]
+            output["N2"]["PLD"] > 2.5
+            and output["N2"]["POAV_Volume_fraction"] > 0.3
+            and output["N2"]["POAV_A^3"] > output["N2"]["PONAV_A^3"]
+            and output["N2"]["POAV_Volume_fraction"]
+            > output["N2"]["PONAV_Volume_fraction"]
         )
 
     return output
 
-#if __name__ == "__main__":
+
+# if __name__ == "__main__":
 
 #    #zpp_res = ZeoPlusPlus(cif_path="IRMOF-1.cif", zeopp_path = "/Users/aaronkaplan/Dropbox/postdoc_MP/software/zeo++-0.3/network")
 #    #zpp_res.run(zeopp_args=["-ha", "-res"], nproc = 3)
