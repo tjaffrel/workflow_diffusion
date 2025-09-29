@@ -1,0 +1,50 @@
+[project]
+name = "workflow_diffusion"
+description = "MOF Generation workflow with diffusion models"
+version = "0.1.0"
+authors = [
+    {name = "MOFGen Team", email = "mofgen@example.com"}
+]
+dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "torchaudio>=2.0.0",
+    "tensorflow>=2.13.0",
+    "tensorflow-hub>=0.15.0",
+    "einops>=0.6.0",
+    "absl-py>=1.4.0",
+    "fire>=0.5.0",
+    "matplotlib>=3.7.0",
+    "imageio>=2.25.0",
+    "tqdm>=4.65.0",
+    "pymatgen>=2023.12.18",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+]
+
+[tool.pixi.project]
+channels = ["conda-forge", "pytorch"]
+platforms = ["linux-64", "osx-64", "win-64"]
+python-dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0", 
+    "tensorflow>=2.13.0",
+    "tensorflow-hub>=0.15.0",
+    "einops>=0.6.0",
+    "absl-py>=1.4.0",
+    "fire>=0.5.0",
+    "matplotlib>=3.7.0",
+    "imageio>=2.25.0",
+    "tqdm>=4.65.0",
+    "pymatgen>=2023.12.18",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+]
+
+[tool.pixi.dependencies]
+python = ">= minimum = 3.9, < maximum = 3.12"
+
+[tool.pixi.tasks]
+install = "pip install -e ."
+train = "python diffuse_materials/train.py --dataset_dir sample_data"
+convert = "python diffuse_materials/cif_to_tfrecord.py --cif_dir /path/to/cifs --output /path/to/output.tfrecord"

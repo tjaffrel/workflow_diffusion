@@ -86,12 +86,14 @@ def main(
     device = f"cuda:{local_rank}" if distributed else "cuda"
     device = torch.device(device)
     train_dataset = MOFDataset(
+        name="qmof_train",
         video_shape=[256, 1, 1, 4],
-        dataset_paths=dataset_dir,
+        dataset_paths=[dataset_dir],
     )
     val_dataset = MOFDataset(
+        name="qmof_val",
         video_shape=[256, 1, 1, 4],
-        dataset_paths=dataset_dir,        
+        dataset_paths=[dataset_dir],        
     )
 
     train_sampler = (

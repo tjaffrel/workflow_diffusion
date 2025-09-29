@@ -1,0 +1,38 @@
+[project]
+name = "workflow_diffusion"
+description = "MOF Generation workflow with diffusion models"
+version = "0.1.0"
+channels = ["conda-forge", "pytorch", "nvidia"]
+platforms = ["linux-64"]
+
+[system-requirements]
+cuda = "12.1"
+
+[dependencies]
+python = "3.11.*"
+numpy = "*"
+scipy = "*"
+pymatgen = "*"
+matplotlib = "*"
+imageio = "*"
+tqdm = "*"
+pytorch = "2.5.1"
+torchvision = "0.20.1"
+torchaudio = "2.5.1"
+einops = "*"
+absl-py = "*"
+fire = "*"
+tensorflow = "*"
+
+[pypi-dependencies]
+ember-ai = "*"
+python-dotenv = "*"
+seaborn = "*"
+pymongo = "*"
+mp-api = "*" 
+
+[tasks]
+train = "python diffuse_materials/train.py --dataset_dir sample_data"
+convert = "python diffuse_materials/cif_to_tfrecord.py --cif_dir /path/to/cifs --output /path/to/output.tfrecord"
+check-cuda = "python -c 'import torch; print(f\"PyTorch version: {torch.__version__}\"); print(f\"CUDA available: {torch.cuda.is_available()}\"); print(f\"CUDA version: {torch.version.cuda}\"); print(f\"Device count: {torch.cuda.device_count()}\")'"
+check-tf = "python -c 'import tensorflow as tf; print(f\"TensorFlow version: {tf.__version__}\")'"
