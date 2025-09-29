@@ -55,7 +55,7 @@ def mof_flow(
     pre_relax_maker: Maker | None = ForceFieldRelaxMaker(
         force_field_name="MACE",
         calculator_kwargs={
-            "model": "/global/cfs/cdirs/matgen/esoteric/share/roberta/mace_omat/mace_models/mace-omat-0-medium.model",
+            "model": "./mace_models/mace-omat-0-medium.model",
             "dispersion": True,
         },
     ),
@@ -247,9 +247,7 @@ def from_zips(zip_file="./final_filtered_all_linkers_new.zip", exclude=None):
 if __name__ == "__main__":
     from fireworks import LaunchPad
 
-    lpad = LaunchPad.from_file(
-        "/Users/aaronkaplan/fw_config/launchpads/my_launchpad_mpdb.yaml"
-    )
+    lpad = LaunchPad.from_file("/path/to/my_launchpad.yaml")
 
     completed_fw_ids = lpad.get_fw_ids(
         {
