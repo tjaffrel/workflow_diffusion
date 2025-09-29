@@ -1,0 +1,111 @@
+# Workflow Diffusion - MOF Generation and DFT Analysis
+
+This repository contains tools for Metal-Organic Framework (MOF) generation using diffusion models and DFT analysis workflows.
+
+## Environment Setup
+
+This project uses **Pixi** for dependency management and environment setup.
+
+### Install Pixi
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Setup Environment
+```bash
+pixi install  # Install all dependencies
+```
+
+### Verify Installation
+```bash
+pixi run check-cuda  # Check PyTorch CUDA setup
+pixi run check-tf    # Check TensorFlow installation
+```
+
+## Directory Structure
+
+### `diffuse_materials/` - MOF Generation
+Diffusion model for generating Metal-Organic Framework structures.
+
+**Scripts:**
+- `cif_to_tfrecord.py` - Convert CIF files to TFRecord format
+- `train.py` - Train the diffusion model
+- `dataset.py` - Data loading and preprocessing
+- `model.py` - DiT (Diffusion Transformer) architecture
+- `diffusion.py` - DDIM sampling for generation
+- `vae.py` - VAE component (placeholder)
+
+**Quick Start:**
+```bash
+# Convert CIF files to TFRecord
+pixi run python diffuse_materials/cif_to_tfrecord.py --cif_dir diffuse_materials/qmof_subset --output mof_data.tfrecord
+
+# Train model
+pixi run python diffuse_materials/train.py --dataset_dir="mof_data.tfrecord" --batch_size=2 --max_train_steps=1000
+```
+
+**See `diffuse_materials/README.md` for detailed usage.**
+
+### `dft_analysis/` - DFT Analysis
+Jupyter notebooks for analyzing DFT calculation results and workflow completion.
+
+**Notebooks:**
+- `get_e_form.ipynb` - Calculate formation energies from DFT results
+- `parse_workflow_steps.ipynb` - Analyze workflow completion statistics
+
+**Usage:**
+```bash
+# Start Jupyter
+pixi run jupyter lab
+
+# Or run specific analysis
+pixi run jupyter nbconvert --execute dft_analysis/get_e_form.ipynb
+```
+
+## Available Tasks
+
+```bash
+# MOF Generation
+pixi run convert --cif_dir /path/to/cifs --output /path/to/output.tfrecord
+pixi run train --dataset_dir="mof_data.tfrecord"
+
+# Environment checks
+pixi run check-cuda
+pixi run check-tf
+```
+
+## Dependencies
+
+**Core ML/AI:**
+- PyTorch 2.5.1 (CUDA 12.1)
+- TensorFlow 2.18.0
+- CUDA support for RTX 5090
+
+**Scientific Computing:**
+- NumPy, SciPy
+- PyMatGen
+- Matplotlib, Plotly
+
+**DFT Analysis:**
+- python-dotenv
+- seaborn
+- pymongo
+- mp-api (Materials Project API)
+
+**Development:**
+- ember-ai
+- Jupyter Lab
+- Fire (CLI framework)
+
+## Citation
+
+```bibtex
+@misc{inizan2025agenticaidiscoverymetalorganic,
+      title={System of Agentic AI for the Discovery of Metal-Organic Frameworks}, 
+      author={Theo Jaffrelot Inizan and Sherry Yang and Aaron Kaplan and Yen-hsu Lin and Jian Yin and Saber Mirzaei and Mona Abdelgaid and Ali H. Alawadhi and KwangHwan Cho and Zhiling Zheng and Ekin Dogus Cubuk and Christian Borgs and Jennifer T. Chayes and Kristin A. Persson and Omar M. Yaghi},
+      year={2025},
+      eprint={2504.14110},
+      archivePrefix={arXiv},
+      primaryClass={cond-mat.mtrl-sci}
+}
+```

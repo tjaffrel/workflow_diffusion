@@ -14,64 +14,186 @@ This implementation generates Metal-Organic Framework (MOF) structures using dif
 - Order-invariant processing (no positional encoding)
 - Resolution-preserving (no downsampling/upsampling)
 
-## Files
+## Components
 
-- **`dataset.py`**: Loads MOF data from TFRecord files → tensor format
-- **`model.py`**: DiT architecture with dual attention mechanisms  
-- **`diffusion.py`**: DDIM sampling with v-parameterization
-- **`train.py`**: Training pipeline with distributed support
+### 1. `cif_to_tfrecord.py` - Data Converter
+Converts CIF (Crystallographic Information File) files to TFRecord format for training.
 
-## Setup Requirements
-
-### Hardware Requirements
-- CUDA-compatible GPU (required)
-- Minimum 4GB VRAM for batch_size=4
-- Multi-GPU setup for distributed training (optional)
-
-### Software Installation
-**Option 1: Pixi (Recommended)**
+**Usage:**
 ```bash
-pixi install  # Creates virtual environment with all dependencies
-pixi run activate  # Activate environment
+pixi run python diffuse_materials/cif_to_tfrecord.py --cif_dir /path/to/cif/files --output /path/to/output.tfrecord
 ```
 
-**Option 2: Manual pip**
+**Parameters:**
+- `--cif_dir`: Directory containing .cif files
+- `--output`: Output TFRecord file path
+- `--max_structures`: Maximum number of structures to process (optional)
+
+**Example:**
 ```bash
-pip install torch torchvision torchaudio tensorflow einops absl-py fire matplotlib imageio tqdm pymatgen numpy scipy
+pixi run python diffuse_materials/cif_to_tfrecord.py --cif_dir diffuse_materials/qmof_subset --output mof_data.tfrecord
 ```
 
-### Data Preparation
-**You need:** TFRecord files with MOF structures
-
-**To create TFRecord files from CIF files:**
-```bash
-python cif_to_tfrecord.py --cif_dir=/path/to/cif/files --output=/path/to/output.tfrecord
-```
-
-**TFRecord contains:**
+**Output TFRecord contains:**
 - `frac_coords`: Fractional atomic coordinates [N_atoms × 3]
 - `atom_types`: Atomic numbers [N_atoms]
 - `lengths`: Unit cell lengths [3]
 - `angles`: Unit cell angles [3] 
 - `formula`: Chemical formula string
 
-### Quick Start
-1. Setup environment: `pixi install`
-2. Prepare TFRecord data: `pixi run python diffuse_materials/cif_to_tfrecord.py --cif_dir diffuse_materials/qmof_subset --output mof_data.tfrecord`
-3. Run training: `pixi run python diffuse_materials/train.py --dataset_dir="mof_data.tfrecord"`
-4. Generate MOFs: Use trained model with `diffusion.generate()`
+### 2. `dataset.py` - Data Loader
+Loads MOF data from TFRecord files and converts to PyTorch tensors.
 
-**Example:** Processing 1000 MOF structures
-```bash
-python cif_to_tfrecord.py --cif_dir=/data/cif_files --output=/data/train.tfrecord --max_structures=1000
+**Key Functions:**
+- `MOFDataset`: PyTorch dataset class for TFRecord files
+- `collate_fn`: Batch collation with padding to 256 atoms
+- Preprocessing: Normalizes coordinates and atom types
+
+**Usage:**
+```python
+from dataset import MOFDataset
+dataset = MOFDataset(
+    name="train",
+    video_shape=[256, 1, 1, 4],  # [max_atoms, channels, height, width]
+    dataset_paths=["mof_data.tfrecord"]
+)
 ```
 
-**Model Training Setup:**
-- Input: MOF structures (up to 256 atoms)
-- Batch size: 4 (default)
-- Learning rate: 8e-5 (default)
-- Steps: 500k (default)
-- Validation: Every 20k steps
+### 3. `model.py` - DiT Architecture
+Diffusion Transformer model with spatial and temporal attention mechanisms.
+
+**Key Classes:**
+- `DiT`: Main model with configurable dimensions, layers, and heads
+- `SpatialAttention`: Attention over atomic positions
+- `TemporalAttention`: Attention over diffusion timesteps
+
+**Model Parameters:**
+- `in_channels`: Input channels (4 for [x,y,z,atom_type])
+- `model_dim`: Hidden dimension (default: 1024)
+- `layers`: Number of transformer layers (default: 12)
+- `heads`: Number of attention heads (default: 16)
+
+**Usage:**
+```python
+from model import DiT
+model = DiT(
+    in_channels=4,
+    model_dim=1024,
+    layers=12,
+    heads=16
+)
+```
+
+### 4. `diffusion.py` - DDIM Sampling
+Implements DDIM (Denoising Diffusion Implicit Models) sampling with v-parameterization.
+
+**Key Functions:**
+- `DDIMSampler`: Main sampling class
+- `generate()`: Generate new MOF structures
+- `sample()`: Single sampling step
+
+**Usage:**
+```python
+from diffusion import DDIMSampler
+sampler = DDIMSampler(model, vae)
+generated_mofs = sampler.generate(
+    batch_size=4,
+    num_steps=50,
+    eta=0.0
+)
+```
+
+### 5. `vae.py` - VAE Component
+Placeholder VAE implementation (identity functions for now).
+
+**Key Functions:**
+- `encode()`: Encode input to latent space
+- `decode()`: Decode latent to output space
+
+### 6. `train.py` - Training Pipeline
+Complete training pipeline with distributed support and checkpointing.
+
+**Usage:**
+```bash
+pixi run python diffuse_materials/train.py --dataset_dir="mof_data.tfrecord" [options]
+```
+
+**Key Parameters:**
+- `--dataset_dir`: Path to TFRecord file
+- `--batch_size`: Batch size (default: 4)
+- `--max_train_steps`: Training steps (default: 500000)
+- `--validate_every`: Validation frequency (default: 20000)
+- `--log_every`: Logging frequency (default: 1000)
+- `--model_dim`: Model hidden dimension (default: 1024)
+- `--layers`: Number of transformer layers (default: 12)
+- `--heads`: Number of attention heads (default: 16)
+- `--learning_rate`: Learning rate (default: 8e-5)
+
+**Example Training:**
+```bash
+# Quick test training
+pixi run python diffuse_materials/train.py \
+    --dataset_dir="mof_data.tfrecord" \
+    --batch_size=2 \
+    --max_train_steps=1000 \
+    --validate_every=500 \
+    --log_every=50 \
+    --model_dim=512 \
+    --layers=4 \
+    --heads=8
+
+# Full training
+pixi run python diffuse_materials/train.py \
+    --dataset_dir="mof_data.tfrecord" \
+    --batch_size=4 \
+    --max_train_steps=500000 \
+    --validate_every=20000 \
+    --log_every=1000
+```
+
+## Complete Workflow
+
+### 1. Setup Environment
+```bash
+pixi install  # Install all dependencies
+```
+
+### 2. Convert CIF to TFRecord
+```bash
+pixi run python diffuse_materials/cif_to_tfrecord.py \
+    --cif_dir diffuse_materials/qmof_subset \
+    --output mof_data.tfrecord
+```
+
+### 3. Train Model
+```bash
+pixi run python diffuse_materials/train.py \
+    --dataset_dir="mof_data.tfrecord" \
+    --batch_size=4 \
+    --max_train_steps=500000
+```
+
+### 4. Generate New MOFs
+```python
+import torch
+from model import DiT
+from diffusion import DDIMSampler
+from vae import VAE
+
+# Load trained model
+model = DiT(in_channels=4, model_dim=1024, layers=12, heads=16)
+model.load_state_dict(torch.load("checkpoints/model_500000.pt"))
+vae = VAE()
+
+# Generate new structures
+sampler = DDIMSampler(model, vae)
+new_mofs = sampler.generate(batch_size=4, num_steps=50)
+```
+
+## Hardware Requirements
+- CUDA-compatible GPU (required)
+- Minimum 4GB VRAM for batch_size=4
+- Multi-GPU setup for distributed training (optional)
 
 ## Citation
 
