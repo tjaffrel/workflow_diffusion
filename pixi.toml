@@ -29,7 +29,8 @@ ember-ai = "*"
 python-dotenv = "*"
 seaborn = "*"
 pymongo = "*"
-mp-api = "*" 
+mp-api = "*"
+openai = "*" 
 
 [tasks]
 train = "python diffuse_materials/train.py --dataset_dir sample_data"

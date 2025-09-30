@@ -69,9 +69,8 @@ pixi run jupyter nbconvert --execute dft_analysis/get_e_form.ipynb
 pixi run convert --cif_dir /path/to/cifs --output /path/to/output.tfrecord
 pixi run train --dataset_dir="mof_data.tfrecord"
 
-# Environment checks
-pixi run check-cuda
-pixi run check-tf
+# MOF Agent Example
+pixi run python example_mof_generation.py
 ```
 
 ## Dependencies
@@ -79,7 +78,7 @@ pixi run check-tf
 **Core ML/AI:**
 - PyTorch 2.5.1 (CUDA 12.1)
 - TensorFlow 2.18.0
-- CUDA support for RTX 5090
+- CUDA support for RTX 
 
 **Scientific Computing:**
 - NumPy, SciPy
@@ -96,6 +95,9 @@ pixi run check-tf
 - ember-ai
 - Jupyter Lab
 - Fire (CLI framework)
+
+**MOF Agents:**
+- openai (OpenAI API client)
 
 ## Citation
 
