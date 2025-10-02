@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from jobflow import Flow, Maker, job, Response
 from pymatgen.core import Structure
 
-from zeopp import run_zeopp_assessment
+from .zeopp_analyzer import run_zeopp_assessment
 
 from typing import TYPE_CHECKING
 

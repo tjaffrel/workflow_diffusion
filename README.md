@@ -62,6 +62,26 @@ pixi run jupyter lab
 pixi run jupyter nbconvert --execute dft_analysis/get_e_form.ipynb
 ```
 
+### `agents/` - MOF Agents
+AI agents for MOF generation and analysis workflows.
+
+**Agent 4 QForge:**
+- `agents/agent_4_qforge/` - MOF Analysis & Optimization agent
+- Replaces `run_jobs.ipynb` with clean Python workflow
+- Combines zeo++ pore analysis and MACE force field relaxation
+- Requires zeo++ software (set `ZEO_PATH` environment variable)
+
+**Usage:**
+```bash
+# Example MOF generation
+pixi run python example_mof_generation.py
+
+# QForge MOF analysis (requires zeo++ installation)
+pixi run python agents/agent_4_qforge/example_usage.py
+```
+
+**See `agents/agent_4_qforge/README.md` for detailed setup and configuration.**
+
 ## Available Tasks
 
 ```bash
@@ -98,6 +118,11 @@ pixi run python example_mof_generation.py
 
 **MOF Agents:**
 - openai (OpenAI API client)
+
+**Agent 4 QForge (MOF Analysis):**
+- jobflow (workflow management)
+- atomate2[forcefields] (MACE force field)
+- fireworks (quantum execution manager)
 
 ## Citation
 

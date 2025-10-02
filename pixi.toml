@@ -30,7 +30,10 @@ python-dotenv = "*"
 seaborn = "*"
 pymongo = "*"
 mp-api = "*"
-openai = "*" 
+openai = "*"
+jobflow = "*"
+atomate2[forcefields] = "*"
+fireworks = "*" 
 
 [tasks]
 train = "python diffuse_materials/train.py --dataset_dir sample_data"
