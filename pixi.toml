@@ -38,7 +38,9 @@ mp-api = "*"
 openai = "*"
 jobflow = "*"
 "atomate2[forcefields]" = "*"
-fireworks = "*" 
+fireworks = "*"
+langchain = "*"
+langchain-openai = "*" 
 
 [tasks]
 train = "python diffuse_materials/train.py --dataset_dir sample_data"
