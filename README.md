@@ -7,9 +7,18 @@ This repository contains tools for Metal-Organic Framework (MOF) generation usin
 This project uses **Pixi** for dependency management and environment setup.
 
 ### Install Pixi
+
+**Linux/macOS:**
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+curl -fsSL https://pixi.sh/install.sh | sh
 ```
+
+**Windows (PowerShell):**
+```powershell
+iwr https://pixi.sh/install.ps1 -useb | iex
+```
+
+Alternatively, see [pixi installation instructions](https://pixi.sh/dev/installation/) for other installation methods.
 
 ### Setup Environment
 ```bash
