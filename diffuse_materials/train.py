@@ -13,10 +13,10 @@ from torch.utils.data import DataLoader, DistributedSampler
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import torch.distributed as dist
-from model import DiT
-from vae import VAE
-from diffusion import Diffusion
-from dataset import MOFDataset
+from diffuse_materials.model import DiT
+from diffuse_materials.vae import VAE
+from diffuse_materials.diffusion import Diffusion
+from diffuse_materials.dataset import MOFDataset
 
 
 @torch.no_grad()

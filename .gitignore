@@ -8,3 +8,12 @@ test_cifs
 *.stdout
 *.stderr
 workflow_output
+
+# Data output
+data/
+
+# Environment files with secrets
+.env
+
+# pytest cache
+.pytest_cache/

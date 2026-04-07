@@ -1,9 +1,9 @@
-[project]
-name = "workflow_diffusion"
-description = "MOF Generation workflow with diffusion models"
+[workspace]
+name = "mofgen"
+description = "MOF Generation workflow with diffusion models and AI agents"
 version = "0.1.0"
-channels = ["conda-forge", "pytorch", "nvidia"]
-platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+channels = ["conda-forge", "pytorch"]
+platforms = ["linux-64", "osx-arm64", "win-64"]
 
 [dependencies]
 python = "3.11.*"
@@ -13,35 +13,57 @@ pymatgen = "*"
 matplotlib = "*"
 imageio = "*"
 tqdm = "*"
-pytorch = ">=2.5.1,<2.6"
-torchvision = ">=0.20.1,<0.21"
-torchaudio = ">=2.5.1,<2.6"
 einops = "*"
 absl-py = "*"
 fire = "*"
-tensorflow = "*"
+pandas = "*"
+pytest = "*"
+pytest-mock = "*"
+pytorch = ">=2.5.1,<2.6"
+torchvision = ">=0.20.1,<0.21"
+torchaudio = ">=2.5.1,<2.6"
 
+# cpuonly meta-package is only valid on linux/windows — macOS uses MPS natively
 [target.linux-64.dependencies]
-cuda-version = "12.1.*"
+cpuonly = {version = "*", channel = "pytorch"}
 
 [target.win-64.dependencies]
-cuda-version = "12.1.*"
+cpuonly = {version = "*", channel = "pytorch"}
 
 [pypi-dependencies]
-ember-ai = "*"
+tensorflow = ">=2.15,<3"
 python-dotenv = "*"
 seaborn = "*"
 pymongo = "*"
 mp-api = "*"
+mpcontribs-client = "*"
 openai = "*"
 jobflow = "*"
-"atomate2[forcefields]" = "*"
+atomate2 = {version = "*", extras = ["forcefields"]}
 fireworks = "*"
 langchain = "*"
-langchain-openai = "*" 
+langchain-openai = "*"
+ember-ai = "*"
+
+[feature.cuda]
+platforms = ["linux-64", "win-64"]
+
+[feature.cuda.dependencies]
+cuda-version = "12.1.*"
+pytorch = {version = ">=2.5.1,<2.6", channel = "pytorch"}
+torchvision = {version = ">=0.20.1,<0.21", channel = "pytorch"}
+torchaudio = {version = ">=2.5.1,<2.6", channel = "pytorch"}
+
+[environments]
+default = {solve-group = "default"}
+cuda = {features = ["cuda"], solve-group = "cuda"}
 
 [tasks]
+test = "pytest tests/ -v"
+test-imports = "python scripts/test_imports.py"
 train = "python diffuse_materials/train.py --dataset_dir sample_data"
 convert = "python diffuse_materials/cif_to_tfrecord.py --cif_dir /path/to/cifs --output /path/to/output.tfrecord"
-check-cuda = "python -c 'import torch; print(f\"PyTorch version: {torch.__version__}\"); print(f\"CUDA available: {torch.cuda.is_available()}\"); print(f\"CUDA version: {torch.version.cuda}\"); print(f\"Device count: {torch.cuda.device_count()}\")'"
-check-tf = "python -c 'import tensorflow as tf; print(f\"TensorFlow version: {tf.__version__}\")'"
+check-cuda = "python -c \"import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}'); print(f'CUDA version: {torch.version.cuda}'); print(f'Device count: {torch.cuda.device_count()}')\""
+check-tf = "python -c \"import tensorflow as tf; print(f'TensorFlow version: {tf.__version__}')\""
+mp-download = "python scripts/mp_data_extraction.py download"
+mp-query = "python scripts/mp_data_extraction.py query"
