@@ -5,27 +5,19 @@ specialized MOF generation agents using Ember's operator system.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Type, TypeVar, Generic
+from typing import Any, Dict, List, Optional, TypeVar
 from dataclasses import dataclass
-from enum import Enum
 
 from ember.api.operators import Operator, EmberModel, Field
 from ember.api import non
 from ember.xcs import jit
 
 
-class MOFGenerationMode(Enum):
-    """Enumeration of MOF generation modes."""
-    BASIC = "basic"  # Generate without chemical constraints
-    METAL_SPECIFIC = "metal_specific"  # Generate with specific metal SBU
-    COMPOSITION_SPECIFIC = "composition_specific"  # Generate with specific composition
-
-
 @dataclass
 class MOFAgentConfig:
     """Configuration for MOF agents."""
     model_name: str = "openai:gpt-4o"
-    temperature: float = 0.7
+    temperature: float = 0
     max_tokens: int = 4000
     use_ensemble: bool = False
     ensemble_size: int = 3
@@ -45,7 +37,7 @@ class MOFStructure(EmberModel):
 
 class MOFGenerationRequest(EmberModel):
     """Request for MOF generation."""
-    mode: MOFGenerationMode = Field(..., description="Generation mode")
+    mode: str = Field(..., description="Generation mode (basic, metal_specific, composition_specific)")
     count: int = Field(default=1, description="Number of structures to generate")
     metal: Optional[str] = Field(None, description="Specific metal for SBU (if applicable)")
     composition: Optional[Dict[str, float]] = Field(None, description="Target composition (if applicable)")
@@ -127,38 +119,3 @@ class BaseMOFAgent(Operator[T, R], ABC):
         return structure
 
 
-class MOFAgentFactory:
-    """Factory for creating MOF agents with different configurations."""
-    
-    @staticmethod
-    def create_agent(
-        agent_type: str,
-        config: Optional[MOFAgentConfig] = None
-    ) -> BaseMOFAgent:
-        """Create an agent of the specified type."""
-        from .mof_master import MOFMaster
-        from .mof_analyzer import MOFAnalyzer
-        from .mof_optimizer import MOFOptimizer
-        from .mof_validator import MOFValidator
-        from .mof_designer import MOFDesigner
-        from .mof_predictor import MOFPredictor
-        
-        agent_classes = {
-            "master": MOFMaster,
-            "analyzer": MOFAnalyzer,
-            "optimizer": MOFOptimizer,
-            "validator": MOFValidator,
-            "designer": MOFDesigner,
-            "predictor": MOFPredictor,
-        }
-        
-        if agent_type not in agent_classes:
-            raise ValueError(f"Unknown agent type: {agent_type}")
-        
-        return agent_classes[agent_type](config)
-    
-    @staticmethod
-    def create_workflow(agents: List[str], config: Optional[MOFAgentConfig] = None):
-        """Create a workflow with multiple agents."""
-        from .mof_workflow import MOFWorkflow
-        return MOFWorkflow(agents, config)

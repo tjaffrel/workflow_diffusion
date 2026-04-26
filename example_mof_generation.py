@@ -96,23 +96,23 @@ def main():
     
     total_structures = 0
     total_time = 0.0
-    
+
     try:
         total_structures += basic_response.success_count
         total_time += basic_response.generation_time
-    except:
+    except NameError:
         pass
-    
+
     try:
         total_structures += metal_response.success_count
         total_time += metal_response.generation_time
-    except:
+    except NameError:
         pass
-    
+
     try:
         total_structures += comp_response.success_count
         total_time += comp_response.generation_time
-    except:
+    except NameError:
         pass
     
     print(f"Total structures generated: {total_structures}")

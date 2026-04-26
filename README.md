@@ -2,7 +2,7 @@
 
 Tools for Metal-Organic Framework (MOF) generation using diffusion models and AI agents.
 
-[![CI](../../actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
+[![CI](https://github.com/tjaffrel/mofgen/actions/workflows/ci.yml/badge.svg)](https://github.com/tjaffrel/mofgen/actions/workflows/ci.yml)
 
 ## Prerequisites
 
@@ -78,6 +78,26 @@ pixi run python agents/agent_4_qforge/example_usage.py
 
 See [`agents/README.md`](agents/README.md) for details.
 
+### Working with the Data
+
+The MOFGen_2025 DFT relaxation trajectories are publicly available on S3
+(`materialsproject-contribs` bucket). Each trajectory contains per-frame
+energies (eV/atom), forces (eV/A), and stresses (eV/A^3) across all ionic
+steps. No API key is required.
+
+```bash
+# Extract trajectories (downloads from public S3, no credentials needed)
+pixi run extract-trajectories
+
+# Process more trajectories at once
+pixi run python examples/extract_trajectories.py --max-trajectories 10
+```
+
+The script uses the [`emmet-core`](https://github.com/materialsproject/emmet)
+`RelaxTrajectory` model and supports conversion to pymatgen and ASE trajectory
+objects. See [`examples/extract_trajectories.py`](examples/extract_trajectories.py)
+for details.
+
 ### Materials Project Data Extraction
 
 Download and query the MOFGen_2025 dataset from [MPContribs](https://next-gen.materialsproject.org/contribs/projects/MOFGen_2025).
@@ -118,10 +138,14 @@ mofgen/
 │   ├── mof_master.py      # Primary MOF generation agent
 │   ├── agent_2_linkergen/ # Linker generation agent
 │   └── agent_4_qforge/    # MOF analysis & optimization
+├── examples/              # User-facing example scripts
+│   └── extract_trajectories.py  # Extract forces/stresses from MOFGen_2025
 ├── scripts/               # Utility scripts
-│   └── mp_data_extraction.py  # Materials Project data download/query
+│   └── mp_data_extraction.py    # Materials Project data download/query
+├── dft_analysis/          # DFT analysis and plotting (figure reproduction)
 ├── tests/                 # Test suite
 ├── pixi.toml              # Environment & dependency config
+├── LICENSE                # MIT License
 └── README.md
 ```
 

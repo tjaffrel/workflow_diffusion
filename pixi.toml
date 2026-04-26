@@ -44,6 +44,10 @@ fireworks = "*"
 langchain = "*"
 langchain-openai = "*"
 ember-ai = "*"
+emmet-core = ">=0.86.3"
+pyarrow = "*"
+s3fs = "*"
+boto3 = "*"
 
 [feature.cuda]
 platforms = ["linux-64", "win-64"]
@@ -67,3 +71,4 @@ check-cuda = "python -c \"import torch; print(f'PyTorch version: {torch.__versio
 check-tf = "python -c \"import tensorflow as tf; print(f'TensorFlow version: {tf.__version__}')\""
 mp-download = "python scripts/mp_data_extraction.py download"
 mp-query = "python scripts/mp_data_extraction.py query"
+extract-trajectories = "python examples/extract_trajectories.py"
