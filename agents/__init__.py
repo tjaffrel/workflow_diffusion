@@ -20,8 +20,11 @@ Example:
     comp_mofs = mof_master.generate_composition_specific_structures(composition=composition, count=2)
 """
 
-from .mof_master import MOFMaster
+from agents.mof_master import MOFMaster
+from agents.providers import LLMProvider, make_provider
 
 __all__ = [
     "MOFMaster",
+    "LLMProvider",
+    "make_provider",
 ]

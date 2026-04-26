@@ -40,7 +40,7 @@ def examples_file(tmp_dir):
 class TestLinkerGenConfig:
     def test_defaults(self):
         cfg = LinkerGenConfig()
-        assert cfg.model_name == "gpt-4"
+        assert cfg.model_name == "gpt-4.1"
         assert cfg.temperature == 1.0
 
 

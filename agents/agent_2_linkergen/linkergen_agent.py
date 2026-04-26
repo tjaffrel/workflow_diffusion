@@ -4,26 +4,33 @@ A simple LLM-based agent for generating new MOF linkers from example datasets.
 Supports both SMILES-to-SMILES and Formula-to-Formula generation.
 """
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
 
+from agents.providers import LLMProvider, make_provider
+
 try:
     from langchain_openai import ChatOpenAI
     from langchain_core.messages import HumanMessage, SystemMessage
+    _HAS_LANGCHAIN = True
 except ImportError:
-    raise ImportError(
-        "langchain and langchain-openai are required. Install with: "
-        "pip install langchain langchain-openai"
-    )
-
+    _HAS_LANGCHAIN = False
 
 
 @dataclass
 class LinkerGenConfig:
-    """Configuration for Linker Generation Agent."""
-    model_name: str = "gpt-4"
+    """Configuration for Linker Generation Agent.
+
+    ``model_name`` is used for the LangChain path (when no provider is
+    given).  When a provider is supplied, the provider's own default model
+    is used instead.  The pipeline originally used gpt-4; default updated
+    to gpt-4.1 (April 2025).
+    """
+    model_name: str = "gpt-4.1"
     temperature: float = 1.0
     max_tokens: Optional[int] = None
     openai_api_key: Optional[str] = None
@@ -31,26 +38,59 @@ class LinkerGenConfig:
 
 class LinkerGenAgent:
     """LLM agent for generating MOF linkers from example datasets."""
-    
-    def __init__(self, config: Optional[LinkerGenConfig] = None):
+
+    def __init__(
+        self,
+        config: Optional[LinkerGenConfig] = None,
+        provider: str | LLMProvider | None = None,
+    ):
         """Initialize the linker generation agent.
-        
+
         Args:
             config: Configuration object. If None, uses defaults.
+            provider: ``"openai"``, ``"anthropic"``, or an :class:`LLMProvider`
+                instance. When *None* (the default), LangChain is used for
+                backwards compatibility.
         """
         self.config = config or LinkerGenConfig()
-        
-        # Get API key from config or environment
-        api_key = self.config.openai_api_key or os.getenv("OPENAI_API_KEY")
-        
-        # Initialize LLM
-        self.llm = ChatOpenAI(
-            model_name=self.config.model_name,
-            temperature=self.config.temperature,
-            max_tokens=self.config.max_tokens,
-            openai_api_key=api_key
-        )
+
+        if provider is not None:
+            if isinstance(provider, str):
+                api_key = self.config.openai_api_key if provider == "openai" else None
+                self._provider: LLMProvider | None = make_provider(
+                    provider,
+                    api_key=api_key,
+                    temperature=self.config.temperature,
+                )
+            else:
+                self._provider = provider
+            self.llm = None
+        else:
+            self._provider = None
+            if not _HAS_LANGCHAIN:
+                raise ImportError(
+                    "langchain and langchain-openai are required when no "
+                    "provider is given. Install with: pip install langchain "
+                    "langchain-openai"
+                )
+            api_key = self.config.openai_api_key or os.getenv("OPENAI_API_KEY")
+            self.llm = ChatOpenAI(
+                model_name=self.config.model_name,
+                temperature=self.config.temperature,
+                max_tokens=self.config.max_tokens,
+                openai_api_key=api_key,
+            )
     
+    def _complete(self, system_prompt: str, user_prompt: str) -> str:
+        """Send a system+user message to the configured backend."""
+        if self._provider is not None:
+            return self._provider.complete(system_prompt, user_prompt)
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_prompt),
+        ]
+        return self.llm.invoke(messages).content
+
     def _load_examples(self, file_path: str) -> Optional[str]:
         """Load example linkers from a file.
         
@@ -91,20 +131,14 @@ class LinkerGenAgent:
             "You want to come up with new chemical formulas for linkers of MOFs. "
             "The reply should only contain a list of new SMILES."
         )
-        
+
         user_prompt = (
             f"Here are examples of linkers in SMILES: {examples}. "
             f"Now, generate {num_linkers} new different linkers of MOFs in SMILES, "
             "and put them into a list."
         )
-        
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=user_prompt)
-        ]
-        
-        response = self.llm.invoke(messages)
-        result = response.content
+
+        result = self._complete(system_prompt, user_prompt)
         
         if output_file:
             Path(output_file).write_text(result, encoding="utf-8")
@@ -137,20 +171,14 @@ class LinkerGenAgent:
             "You want to come up with new chemical formulas for linkers of MOFs. "
             "The reply should only contain a list of new chemical formulas."
         )
-        
+
         user_prompt = (
             f"Here are examples of linkers in chemical formula: {examples}. "
             f"Now, generate {num_linkers} new different linkers of MOFs in "
             "chemical formula, and put them into a list."
         )
-        
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=user_prompt)
-        ]
-        
-        response = self.llm.invoke(messages)
-        result = response.content
+
+        result = self._complete(system_prompt, user_prompt)
         
         if output_file:
             Path(output_file).write_text(result, encoding="utf-8")
@@ -182,16 +210,10 @@ class LinkerGenAgent:
         
         user_prompt = user_prompt_template.format(
             examples=examples,
-            num_linkers=num_linkers
+            num_linkers=num_linkers,
         )
-        
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=user_prompt)
-        ]
-        
-        response = self.llm.invoke(messages)
-        result = response.content
+
+        result = self._complete(system_prompt, user_prompt)
         
         if output_file:
             Path(output_file).write_text(result, encoding="utf-8")

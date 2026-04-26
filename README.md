@@ -10,7 +10,7 @@ Tools for Metal-Organic Framework (MOF) generation using diffusion models and AI
 
 Optional (depending on features used):
 - NVIDIA GPU + drivers (for CUDA-accelerated training)
-- OpenAI API key (for LLM-based agents: MOFMaster, LinkerGen)
+- OpenAI API key **or** Anthropic API key (for LLM-based agents: MOFMaster, LinkerGen)
 - Materials Project API key (for data extraction)
 
 ## Installation
@@ -64,10 +64,17 @@ See [`diffuse_materials/README.md`](diffuse_materials/README.md) for details.
 
 ### AI Agents
 
+The agents support both OpenAI and Anthropic as LLM providers (the pipeline
+originally used gpt-4o; default is now gpt-4.1).
+
 ```bash
-# MOFMaster — LLM-based MOF generation (requires OPENAI_API_KEY)
+# With OpenAI (default)
 export OPENAI_API_KEY="your_key"
 pixi run python example_mof_generation.py
+
+# With Anthropic (Claude)
+export ANTHROPIC_API_KEY="your_key"
+pixi run python example_mof_generation.py --provider anthropic
 
 # LinkerGen — MOF linker generation
 pixi run python agents/agent_2_linkergen/example_usage.py
@@ -76,7 +83,67 @@ pixi run python agents/agent_2_linkergen/example_usage.py
 pixi run python agents/agent_4_qforge/example_usage.py
 ```
 
+Provider selection in code:
+
+```python
+from agents import MOFMaster
+
+# OpenAI (default — uses gpt-4.1)
+master = MOFMaster()
+
+# Anthropic (uses claude-sonnet-4-20250514)
+master = MOFMaster(provider="anthropic")
+```
+
 See [`agents/README.md`](agents/README.md) for details.
+
+### MCP Server (Claude Desktop / Claude Code)
+
+The `mofgen_tools` package exposes MOFGen data browsing and agent invocation
+as [MCP](https://modelcontextprotocol.io/) tools. This lets you explore
+MOFGen_2025 trajectories and generate MOFs directly from a conversation.
+
+MCP is natively supported by **Claude Desktop** and **Claude Code**. Other
+editors with MCP support (VS Code via Continue/Cline, Cursor, etc.) should
+also work — any MCP-compatible client can connect. OpenAI products do not
+currently support MCP natively.
+
+```bash
+# Start the MCP server
+pixi run mcp-server
+```
+
+**Claude Desktop** — add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "mofgen": {
+      "command": "pixi",
+      "args": ["run", "python", "-m", "mofgen_tools"],
+      "cwd": "/path/to/mofgen"
+    }
+  }
+}
+```
+
+**Claude Code** — add to `.claude/settings.json` (no `cwd` needed when
+running inside the project directory):
+
+```json
+{
+  "mcpServers": {
+    "mofgen": {
+      "command": "pixi",
+      "args": ["run", "python", "-m", "mofgen_tools"]
+    }
+  }
+}
+```
+
+Available tools: `list_trajectories`, `search_trajectories`,
+`inspect_trajectory`, `get_structure`, `query_local`, `generate_mof`,
+`generate_linker`, `analyze_structure`.
 
 ### Working with the Data
 
@@ -136,8 +203,13 @@ mofgen/
 │   └── vae.py             # VAE placeholder
 ├── agents/                # LLM agent framework
 │   ├── mof_master.py      # Primary MOF generation agent
+│   ├── providers/         # LLM provider abstraction (OpenAI + Anthropic)
 │   ├── agent_2_linkergen/ # Linker generation agent
 │   └── agent_4_qforge/    # MOF analysis & optimization
+├── mofgen_tools/          # MCP server for Claude Desktop/Code
+│   ├── server.py          # Tool registration
+│   ├── data/              # S3 trajectory browsing + local extxyz queries
+│   └── agents/            # Agent tool wrappers
 ├── examples/              # User-facing example scripts
 │   └── extract_trajectories.py  # Extract forces/stresses from MOFGen_2025
 ├── scripts/               # Utility scripts
@@ -180,11 +252,16 @@ pixi install -e cuda
 pixi run check-cuda
 ```
 
-### OpenAI API errors in agents
+### API key errors in agents
 
-The MOFMaster and LinkerGen agents require an OpenAI API key:
+The MOFMaster and LinkerGen agents require an LLM API key. Set the one
+matching your provider:
 ```bash
+# OpenAI (default)
 export OPENAI_API_KEY="your_key"
+
+# Anthropic (Claude)
+export ANTHROPIC_API_KEY="your_key"
 ```
 
 ## Citation

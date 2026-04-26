@@ -6,13 +6,14 @@ This agent provides three main generation modes:
 3. Composition-specific generation with target composition
 """
 
-import os
+from __future__ import annotations
+
 import time
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 
-from openai import OpenAI
+from agents.providers import LLMProvider, make_provider
 
 
 class MOFGenerationMode(Enum):
@@ -63,14 +64,36 @@ class MOFMaster:
     3. Composition-specific: Generate MOFs with target chemical composition
     """
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o"):
-        """Initialize MOFMaster with OpenAI configuration."""
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
-            raise ValueError("OpenAI API key is required. Set OPENAI_API_KEY environment variable or pass api_key parameter.")
-        
-        self.client = OpenAI(api_key=self.api_key)
-        self.model = model
+    def __init__(
+        self,
+        provider: str | LLMProvider = "openai",
+        api_key: Optional[str] = None,
+        model: Optional[str] = None,
+    ):
+        """Initialize MOFMaster.
+
+        The pipeline originally used ``gpt-4o``; default is now ``gpt-4.1``.
+
+        Args:
+            provider: ``"openai"``, ``"anthropic"``, or an :class:`LLMProvider`
+                instance.  Defaults to ``"openai"`` for backwards compatibility.
+            api_key: API key override (falls back to env var).
+            model: Model name override.  *None* uses the provider's default
+                (``gpt-4.1`` for OpenAI, ``claude-sonnet-4-20250514`` for
+                Anthropic).
+        """
+        # Backwards compat: MOFMaster("sk-...") passes api_key positionally
+        if isinstance(provider, str) and provider.startswith(("sk-", "key-")):
+            api_key = provider
+            provider = "openai"
+
+        if isinstance(provider, str):
+            self._provider = make_provider(
+                provider, api_key=api_key, model=model,
+            )
+        else:
+            self._provider = provider
+        self.model = model or getattr(self._provider, "model", None) or "gpt-4.1"
         self.generation_templates = self._load_generation_templates()
     
     def _load_generation_templates(self) -> Dict[str, str]:
@@ -189,7 +212,7 @@ Structure 2:
             constraint_text = "\n".join([f"- {k}: {v}" for k, v in constraints.items()])
             prompt += f"\nAdditional constraints:\n{constraint_text}"
         
-        response = self._generate_with_openai(prompt)
+        response = self._generate_with_llm(prompt)
         
         # Parse response to extract structure information
         return self._parse_structure_response(response, index, "basic")
@@ -213,7 +236,7 @@ Structure 2:
             constraint_text = "\n".join([f"- {k}: {v}" for k, v in constraints.items()])
             prompt += f"\nAdditional constraints:\n{constraint_text}"
         
-        response = self._generate_with_openai(prompt)
+        response = self._generate_with_llm(prompt)
         
         # Parse response to extract structure information
         structure = self._parse_structure_response(response, index, "metal_specific")
@@ -239,28 +262,24 @@ Structure 2:
             constraint_text = "\n".join([f"- {k}: {v}" for k, v in constraints.items()])
             prompt += f"\nAdditional constraints:\n{constraint_text}"
         
-        response = self._generate_with_openai(prompt)
+        response = self._generate_with_llm(prompt)
         
         # Parse response to extract structure information
         structure = self._parse_structure_response(response, index, "composition_specific")
         structure.composition = composition
         return structure
     
-    def _generate_with_openai(self, prompt: str) -> str:
-        """Generate text using OpenAI API."""
+    def _generate_with_llm(self, prompt: str) -> str:
+        """Generate text using the configured LLM provider."""
+        system = (
+            "You are an expert in Metal-Organic Framework (MOF) chemistry "
+            "and crystallography. Generate accurate and chemically reasonable "
+            "MOF structures."
+        )
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": "You are an expert in Metal-Organic Framework (MOF) chemistry and crystallography. Generate accurate and chemically reasonable MOF structures."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=4000,
-                temperature=0
-            )
-            return response.choices[0].message.content
+            return self._provider.complete(system, prompt, max_tokens=4000)
         except Exception as e:
-            print(f"Error generating with OpenAI: {e}")
+            print(f"Error generating with LLM: {e}")
             return "Error generating structure: " + str(e)
     
     def _parse_structure_response(

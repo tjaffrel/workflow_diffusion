@@ -9,8 +9,8 @@ test_cifs
 *.stderr
 workflow_output
 
-# Data output
-data/
+# Data output (top-level only — not mofgen_tools/data/)
+/data/
 
 # Environment files with secrets
 .env
