@@ -23,13 +23,6 @@ pytorch = ">=2.5.1,<2.6"
 torchvision = ">=0.20.1,<0.21"
 torchaudio = ">=2.5.1,<2.6"
 
-# cpuonly meta-package is only valid on linux/windows — macOS uses MPS natively
-[target.linux-64.dependencies]
-cpuonly = {version = "*", channel = "pytorch"}
-
-[target.win-64.dependencies]
-cpuonly = {version = "*", channel = "pytorch"}
-
 [pypi-dependencies]
 tensorflow = ">=2.15,<3"
 python-dotenv = "*"
@@ -52,6 +45,16 @@ pyarrow = "*"
 s3fs = "*"
 boto3 = "*"
 
+# cpuonly meta-package forces CPU-only PyTorch on linux/windows;
+# macOS uses MPS natively — target scoping skips it there.
+[feature.cpu]
+
+[feature.cpu.target.linux-64.dependencies]
+cpuonly = {version = "*", channel = "pytorch"}
+
+[feature.cpu.target.win-64.dependencies]
+cpuonly = {version = "*", channel = "pytorch"}
+
 [feature.cuda]
 platforms = ["linux-64", "win-64"]
 
@@ -62,7 +65,7 @@ torchvision = {version = ">=0.20.1,<0.21", channel = "pytorch"}
 torchaudio = {version = ">=2.5.1,<2.6", channel = "pytorch"}
 
 [environments]
-default = {solve-group = "default"}
+default = {features = ["cpu"], solve-group = "default"}
 cuda = {features = ["cuda"], solve-group = "cuda"}
 
 [tasks]

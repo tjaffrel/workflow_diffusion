@@ -207,7 +207,9 @@ class LinkerGenAgent:
             Generated linkers as string
         """
         examples = self._load_examples(examples_file)
-        
+        if not examples:
+            raise ValueError(f"Could not load examples from {examples_file}")
+
         user_prompt = user_prompt_template.format(
             examples=examples,
             num_linkers=num_linkers,

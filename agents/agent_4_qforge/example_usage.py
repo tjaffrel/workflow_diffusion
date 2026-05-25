@@ -1,7 +1,11 @@
 """Example usage of MFOModeller agent."""
 
+import sys
 from pathlib import Path
-from agent_4_qforge.mof_modeller import MFOModeller, MFOModellerConfig
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from agents.agent_4_qforge.mof_modeller import MFOModeller, MFOModellerConfig
 
 
 def example_single_structure():
