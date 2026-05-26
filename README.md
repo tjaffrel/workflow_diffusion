@@ -6,7 +6,8 @@ Tools for Metal-Organic Framework (MOF) generation using diffusion models and AI
 
 ## Prerequisites
 
-- [Pixi](https://pixi.sh) package manager
+- Python 3.11+
+- One of: [Pixi](https://pixi.sh), [uv](https://docs.astral.sh/uv/), or pip
 
 Optional (depending on features used):
 - NVIDIA GPU + drivers (for CUDA-accelerated training)
@@ -15,41 +16,87 @@ Optional (depending on features used):
 
 ## Installation
 
-### 1. Install Pixi
+### Option A: Pixi (recommended — handles conda + PyPI deps together)
 
-**Linux / macOS:**
 ```bash
-curl -fsSL https://pixi.sh/install.sh | sh
-```
+# Install pixi
+curl -fsSL https://pixi.sh/install.sh | sh   # Linux/macOS
+# iwr https://pixi.sh/install.ps1 -useb | iex  # Windows PowerShell
 
-**Windows (PowerShell):**
-```powershell
-iwr https://pixi.sh/install.ps1 -useb | iex
-```
-
-### 2. Install Dependencies
-
-**CPU only (works on all platforms):**
-```bash
+# CPU only (all platforms)
 pixi install
-```
 
-**With CUDA support (Linux/Windows with NVIDIA GPU):**
-```bash
+# With CUDA support (Linux/Windows with NVIDIA GPU)
 pixi install -e cuda
 ```
 
-### 3. Verify Installation
+### Option B: uv (fast pip-compatible installer)
 
 ```bash
-pixi run test-imports   # Verify all modules load
-pixi run check-tf       # Check TensorFlow
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# GPU only — must use the cuda environment:
-pixi run -e cuda check-cuda
+# Core only
+uv pip install -e .
+
+# With agents (LLM providers)
+uv pip install -e ".[agents]"
+
+# With everything
+uv pip install -e ".[all]"
+```
+
+### Option C: pip
+
+```bash
+# Core only
+pip install -e .
+
+# With agents (LLM providers)
+pip install -e ".[agents]"
+
+# With MCP server (includes agents)
+pip install -e ".[mcp]"
+
+# With data tools (S3 trajectories, Materials Project)
+pip install -e ".[data]"
+
+# With QForge (atomate2 workflows)
+pip install -e ".[qforge]"
+
+# Everything
+pip install -e ".[all]"
+```
+
+### Dependency Groups
+
+| Group | What it adds |
+|-------|-------------|
+| `agents` | OpenAI, Anthropic, LangChain — needed for MOFMaster, LinkerGen |
+| `mcp` | MCP server for Claude Desktop/Code (includes `agents`) |
+| `data` | S3 trajectory access, Materials Project client, ASE |
+| `qforge` | atomate2, jobflow, fireworks for DFT workflows (includes `agents`) |
+| `vis` | seaborn, pymongo for analysis/plotting |
+| `dev` | pytest, pytest-mock |
+| `all` | Everything above |
+
+### Verify Installation
+
+```bash
+# With pixi
+pixi run test-imports
+pixi run check-tf
+pixi run -e cuda check-cuda   # GPU env only
+
+# With pip/uv
+python scripts/test_imports.py
+python -c "import tensorflow as tf; print(tf.__version__)"
 ```
 
 ## Quick Start
+
+> **Note:** All examples below use `pixi run python ...`. If you installed
+> with pip or uv, replace `pixi run python` with `python`.
 
 ### Diffusion Model (MOF Structure Generation)
 
@@ -112,8 +159,11 @@ also work — any MCP-compatible client can connect. OpenAI products do not
 currently support MCP natively.
 
 ```bash
-# Start the MCP server
+# With pixi
 pixi run mcp-server
+
+# With pip/uv
+python -m mofgen_tools
 ```
 
 **Claude Desktop** — add to `claude_desktop_config.json`:
@@ -124,6 +174,20 @@ pixi run mcp-server
     "mofgen": {
       "command": "pixi",
       "args": ["run", "python", "-m", "mofgen_tools"],
+      "cwd": "/path/to/mofgen"
+    }
+  }
+}
+```
+
+If you installed with pip/uv instead of pixi:
+
+```json
+{
+  "mcpServers": {
+    "mofgen": {
+      "command": "python",
+      "args": ["-m", "mofgen_tools"],
       "cwd": "/path/to/mofgen"
     }
   }
@@ -190,7 +254,11 @@ pixi run mp-query --min-surface-area 1000 --output data/high_sa_mofs.csv
 ## Running Tests
 
 ```bash
+# With pixi
 pixi run test
+
+# With pip/uv
+pytest tests/ -v
 ```
 
 ## Project Structure
