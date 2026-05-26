@@ -41,10 +41,10 @@ def get_api_key():
 
 
 def get_client(api_key):
-    """Create MPContribs client."""
+    """Create MPContribs client scoped to MOFGen_2025."""
     from mpcontribs.client import Client
 
-    return Client(api_key)
+    return Client(api_key, project=PROJECT_NAME)
 
 
 def download(output, format):
@@ -53,8 +53,8 @@ def download(output, format):
     client = get_client(api_key)
 
     print(f"Fetching contributions from project '{PROJECT_NAME}'...")
-    contributions = client.get_contributions(PROJECT_NAME)
-    df = pd.json_normalize(contributions)
+    result = client.query_contributions(paginate=True)
+    df = pd.json_normalize(result["data"])
 
     output_path = Path(output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -83,8 +83,8 @@ def query(metal=None, min_surface_area=None, max_surface_area=None,
     client = get_client(api_key)
 
     print(f"Querying project '{PROJECT_NAME}' with filters...")
-    contributions = client.get_contributions(PROJECT_NAME)
-    df = pd.json_normalize(contributions)
+    result = client.query_contributions(paginate=True)
+    df = pd.json_normalize(result["data"])
 
     if metal:
         metal_col = [c for c in df.columns if "metal" in c.lower()]

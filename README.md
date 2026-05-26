@@ -44,7 +44,9 @@ pixi install -e cuda
 ```bash
 pixi run test-imports   # Verify all modules load
 pixi run check-tf       # Check TensorFlow
-pixi run check-cuda     # Check PyTorch CUDA (GPU env only)
+
+# GPU only — must use the cuda environment:
+pixi run -e cuda check-cuda
 ```
 
 ## Quick Start
@@ -56,8 +58,8 @@ pixi run check-cuda     # Check PyTorch CUDA (GPU env only)
 pixi run python diffuse_materials/cif_to_tfrecord.py \
     --cif_dir /path/to/cifs --output mof_data.tfrecord
 
-# Train the diffusion model (requires GPU)
-pixi run train --dataset_dir mof_data.tfrecord
+# Train the diffusion model (requires GPU — must use cuda environment)
+pixi run -e cuda train --dataset_dir mof_data.tfrecord
 ```
 
 See [`diffuse_materials/README.md`](diffuse_materials/README.md) for details.
@@ -79,7 +81,8 @@ pixi run python example_mof_generation.py --provider anthropic
 # LinkerGen — MOF linker generation
 pixi run python agents/agent_2_linkergen/example_usage.py
 
-# QForge — MOF analysis with zeo++ and MACE (requires zeo++)
+# QForge — MOF analysis with zeo++ and MACE
+# (requires zeo++ and compatible atomate2; may need atomate2 pin adjustment)
 pixi run python agents/agent_4_qforge/example_usage.py
 ```
 
@@ -241,15 +244,23 @@ pixi install
 
 ### CUDA not detected
 
-Verify your NVIDIA drivers are installed:
+The default pixi environment installs CPU-only PyTorch. GPU tasks **must**
+use the `cuda` environment via `-e cuda`:
+
 ```bash
-nvidia-smi
+# Install the cuda environment
+pixi install -e cuda
+
+# Verify GPU is visible
+pixi run -e cuda check-cuda
+
+# Train with GPU
+pixi run -e cuda train --dataset_dir mof_data.tfrecord
 ```
 
-Make sure you installed the CUDA environment:
+If CUDA is still not detected, verify your NVIDIA drivers:
 ```bash
-pixi install -e cuda
-pixi run check-cuda
+nvidia-smi
 ```
 
 ### API key errors in agents

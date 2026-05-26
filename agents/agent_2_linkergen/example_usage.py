@@ -1,6 +1,13 @@
 """Example usage of the Linker Generation Agent."""
 
-from linker_gen_agent import LinkerGenAgent, LinkerGenConfig
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from agents.agent_2_linkergen.linkergen_agent import LinkerGenAgent, LinkerGenConfig
+
+SCRIPT_DIR = Path(__file__).resolve().parent
 
 
 def example_smiles_generation():
@@ -17,9 +24,9 @@ def example_smiles_generation():
     
     # Generate new SMILES linkers
     result = agent.generate_smiles_from_smiles(
-        examples_file="Example_Linker_SMILES.txt",
+        examples_file=str(SCRIPT_DIR / "Example_Linker_SMILES.txt"),
         num_linkers=100,
-        output_file="Generated_Linker_SMILES.txt"
+        output_file=str(SCRIPT_DIR / "Generated_Linker_SMILES.txt")
     )
     
     print(f"Generated {len(result)} characters of SMILES linkers")
@@ -37,9 +44,9 @@ def example_formula_generation():
     
     # Generate new formula linkers
     result = agent.generate_formula_from_formula(
-        examples_file="Example_Linker_Formula.txt",
+        examples_file=str(SCRIPT_DIR / "Example_Linker_Formula.txt"),
         num_linkers=50,
-        output_file="Generated_Linker_Formula.txt"
+        output_file=str(SCRIPT_DIR / "Generated_Linker_Formula.txt")
     )
     
     print(f"Generated {len(result)} characters of formula linkers")
@@ -56,7 +63,7 @@ def example_custom_generation():
     
     # Custom generation for specific use case
     result = agent.generate_custom(
-        examples_file="Example_Linker_SMILES.txt",
+        examples_file=str(SCRIPT_DIR / "Example_Linker_SMILES.txt"),
         system_prompt=(
             "You are an expert MOF chemist specializing in "
             "porous materials for gas storage applications."
@@ -68,7 +75,7 @@ def example_custom_generation():
             "Focus on linkers with aromatic rings and functional groups."
         ),
         num_linkers=100,
-        output_file="custom_generated_linkers.txt"
+        output_file=str(SCRIPT_DIR / "custom_generated_linkers.txt")
     )
     
     print(f"Generated {len(result)} characters of custom linkers")
@@ -87,5 +94,5 @@ if __name__ == "__main__":
         print("\nMake sure you have:")
         print("1. Set OPENAI_API_KEY environment variable")
         print("2. Installed langchain and langchain-openai")
-        print("3. Example files in the current directory")
+        print("3. Example files in the script directory")
 

@@ -51,7 +51,7 @@ def mock_client(mock_contributions):
     """Mock MPContribs client."""
     with patch("scripts.mp_data_extraction.get_client") as mock_get:
         client = MagicMock()
-        client.get_contributions.return_value = mock_contributions
+        client.query_contributions.return_value = {"data": mock_contributions, "total_count": len(mock_contributions)}
         mock_get.return_value = client
         yield client
 
