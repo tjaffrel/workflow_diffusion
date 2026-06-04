@@ -7,7 +7,7 @@ name = "mofgen"
 description = "MOF Generation workflow with diffusion models and AI agents"
 version = "0.1.0"
 requires-python = ">=3.11"
-license = "MIT"
+license = {text = "MIT"}
 authors = [
     {name = "MOFGen Team"},
 ]
