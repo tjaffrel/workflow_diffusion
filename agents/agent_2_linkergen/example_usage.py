@@ -1,9 +1,6 @@
 """Example usage of the Linker Generation Agent."""
 
-import sys
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from agents.agent_2_linkergen.linkergen_agent import LinkerGenAgent, LinkerGenConfig
 
@@ -14,21 +11,18 @@ def example_smiles_generation():
     """Example: Generate SMILES linkers from example SMILES."""
     print("Example 1: SMILES to SMILES Generation")
     print("-" * 50)
-    
+
     # Initialize agent
-    config = LinkerGenConfig(
-        model_name="gpt-4",
-        temperature=1.0
-    )
+    config = LinkerGenConfig(model_name="gpt-4", temperature=1.0)
     agent = LinkerGenAgent(config)
-    
+
     # Generate new SMILES linkers
     result = agent.generate_smiles_from_smiles(
         examples_file=str(SCRIPT_DIR / "Example_Linker_SMILES.txt"),
         num_linkers=100,
-        output_file=str(SCRIPT_DIR / "Generated_Linker_SMILES.txt")
+        output_file=str(SCRIPT_DIR / "Generated_Linker_SMILES.txt"),
     )
-    
+
     print(f"Generated {len(result)} characters of SMILES linkers")
     print(f"First 200 characters: {result[:200]}...")
     print()
@@ -38,17 +32,17 @@ def example_formula_generation():
     """Example: Generate formula linkers from example formulas."""
     print("Example 2: Formula to Formula Generation")
     print("-" * 50)
-    
+
     # Initialize agent
     agent = LinkerGenAgent(LinkerGenConfig())
-    
+
     # Generate new formula linkers
     result = agent.generate_formula_from_formula(
         examples_file=str(SCRIPT_DIR / "Example_Linker_Formula.txt"),
         num_linkers=50,
-        output_file=str(SCRIPT_DIR / "Generated_Linker_Formula.txt")
+        output_file=str(SCRIPT_DIR / "Generated_Linker_Formula.txt"),
     )
-    
+
     print(f"Generated {len(result)} characters of formula linkers")
     print(f"First 200 characters: {result[:200]}...")
     print()
@@ -58,9 +52,9 @@ def example_custom_generation():
     """Example: Custom generation with specialized prompts."""
     print("Example 3: Custom Generation")
     print("-" * 50)
-    
+
     agent = LinkerGenAgent(LinkerGenConfig())
-    
+
     # Custom generation for specific use case
     result = agent.generate_custom(
         examples_file=str(SCRIPT_DIR / "Example_Linker_SMILES.txt"),
@@ -75,9 +69,9 @@ def example_custom_generation():
             "Focus on linkers with aromatic rings and functional groups."
         ),
         num_linkers=100,
-        output_file=str(SCRIPT_DIR / "custom_generated_linkers.txt")
+        output_file=str(SCRIPT_DIR / "custom_generated_linkers.txt"),
     )
-    
+
     print(f"Generated {len(result)} characters of custom linkers")
     print(f"First 200 characters: {result[:200]}...")
     print()
@@ -95,4 +89,3 @@ if __name__ == "__main__":
         print("1. Set OPENAI_API_KEY environment variable")
         print("2. Installed langchain and langchain-openai")
         print("3. Example files in the script directory")
-
