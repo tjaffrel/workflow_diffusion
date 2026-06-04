@@ -1,5 +1,6 @@
 from __future__ import annotations
-from atomate2.forcefields.jobs import MACERelaxMaker
+from atomate2.forcefields import MLFF
+from atomate2.forcefields.jobs import ForceFieldRelaxMaker
 from dataclasses import dataclass, field
 from jobflow import Flow, Maker, job, Response
 from pymatgen.core import Structure
@@ -19,16 +20,18 @@ class MofDiscovery(Maker):
     sorbates: list[str] | str = field(default_factory=lambda: ["N2", "CO2", "H2O"])
     zeopp_nproc: int = 1
     ff_relax_maker: Maker = field(
-        default_factory=lambda: MACERelaxMaker(
+        # atomate2 unified the force-field makers: MACERelaxMaker was replaced by
+        # ForceFieldRelaxMaker(force_field_name=...). store_trajectory and
+        # ionic_step_data are now top-level fields, not task_document_kwargs.
+        default_factory=lambda: ForceFieldRelaxMaker(
+            force_field_name=MLFF.MACE_MP_0,
             calculator_kwargs={
                 # "model": "small",
                 "default_dtype": "float64",
                 "dispersion": True,
             },
-            task_document_kwargs={
-                "store_trajectory": "no",
-                "ionic_step_data": ("energy",),
-            },
+            store_trajectory="no",
+            ionic_step_data=("energy",),
         )
     )
 
