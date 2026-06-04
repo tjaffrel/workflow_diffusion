@@ -23,6 +23,10 @@ Optional (depending on features used):
 curl -fsSL https://pixi.sh/install.sh | sh   # Linux/macOS
 # iwr https://pixi.sh/install.ps1 -useb | iex  # Windows PowerShell
 
+# Easiest: auto-detect CPU vs GPU and install the right environment
+./install.sh
+
+# Or choose manually:
 # CPU only (all platforms)
 pixi install
 
@@ -251,6 +255,28 @@ pixi run mp-query --metal Zr --output data/zr_mofs.csv
 pixi run mp-query --min-surface-area 1000 --output data/high_sa_mofs.csv
 ```
 
+## Running on NERSC (Perlmutter)
+
+Pixi works directly on Perlmutter. The login nodes have a shared GPU for quick
+checks; use the batch scripts for real runs.
+
+```bash
+# One-time: install (auto-detects the login-node GPU)
+./install.sh
+
+# Quick GPU check on the shared login-node GPU
+pixi run -e cuda check-cuda
+
+# Batch feature tests (premium queues). Smoke runs: add --qos=debug / --qos=gpu_debug
+sbatch scripts/nersc/test_gpu.sbatch   # account m4707_g, -C gpu, gpu_premium
+sbatch scripts/nersc/test_cpu.sbatch   # account m4707,   -C cpu, premium
+```
+
+Agent and S3 features on compute nodes may need outbound network access. Provide a
+proxy via `MOFGEN_HTTPS_PROXY` (see NERSC docs for the current value) and put
+`ANTHROPIC_API_KEY=...` in a git-ignored `.env`. `premium`/`gpu_premium` bill at 2x —
+use `debug`/`gpu_debug` for smoke runs.
+
 ## Running Tests
 
 ```bash
@@ -312,24 +338,34 @@ pixi install
 
 ### CUDA not detected
 
-The default pixi environment installs CPU-only PyTorch. GPU tasks **must**
-use the `cuda` environment via `-e cuda`:
+First, run the diagnostic:
+```bash
+pixi run -e cuda doctor
+```
+It reports whether a GPU is visible, the driver, the active env, and what to fix.
+
+GPU tasks **must** use the `cuda` environment (`-e cuda`). The default environment
+is CPU-only by design. The `cuda` env is **linux-64 only** and installs a GPU
+PyTorch build whose CUDA runtime is bundled by conda — you do **not** need a
+matching system CUDA toolkit, only an NVIDIA driver supporting **CUDA >= 12**
+(check `nvidia-smi`).
 
 ```bash
-# Install the cuda environment
 pixi install -e cuda
-
-# Verify GPU is visible
-pixi run -e cuda check-cuda
-
-# Train with GPU
-pixi run -e cuda train --dataset_dir mof_data.tfrecord
+pixi run -e cuda check-cuda   # expect: CUDA available: True
 ```
 
-If CUDA is still not detected, verify your NVIDIA drivers:
-```bash
-nvidia-smi
-```
+If `check-cuda` reports `CUDA available: False` **and** `CUDA version: None`, you
+have a CPU build — reinstall with `pixi install -e cuda` and confirm
+`torch.version.cuda` is not `None`. If the driver is older than CUDA 12, update it.
+
+### GPU support by platform
+
+| Platform | GPU support |
+|---|---|
+| Linux (x86-64) | Fully supported via the `cuda` env (conda-forge). |
+| macOS (Apple Silicon) | Uses Metal/MPS via the default env — no CUDA. |
+| Windows | conda-forge has no CUDA PyTorch for Windows. Use the default (CPU) env, or install a CUDA build via pip from pytorch.org into the pixi env. |
 
 ### API key errors in agents
 

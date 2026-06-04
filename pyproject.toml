@@ -11,10 +11,9 @@ license = {text = "MIT"}
 authors = [
     {name = "MOFGen Team"},
 ]
+# torchvision/torchaudio are intentionally omitted — never imported by mofgen.
 dependencies = [
     "torch>=2.0.0",
-    "torchvision>=0.15.0",
-    "torchaudio>=2.0.0",
     "tensorflow>=2.15.0",
     "einops>=0.6.0",
     "absl-py>=1.4.0",
