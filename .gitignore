@@ -17,3 +17,8 @@ workflow_output
 
 # pytest cache
 .pytest_cache/
+
+# editable install / build artifacts
+*.egg-info/
+build/
+dist/
