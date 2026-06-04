@@ -255,28 +255,6 @@ pixi run mp-query --metal Zr --output data/zr_mofs.csv
 pixi run mp-query --min-surface-area 1000 --output data/high_sa_mofs.csv
 ```
 
-## Running on NERSC (Perlmutter)
-
-Pixi works directly on Perlmutter. The login nodes have a shared GPU for quick
-checks; use the batch scripts for real runs.
-
-```bash
-# One-time: install (auto-detects the login-node GPU)
-./install.sh
-
-# Quick GPU check on the shared login-node GPU
-pixi run -e cuda check-cuda
-
-# Batch feature tests (premium queues). Smoke runs: add --qos=debug / --qos=gpu_debug
-sbatch scripts/nersc/test_gpu.sbatch   # account m4707_g, -C gpu, gpu_premium
-sbatch scripts/nersc/test_cpu.sbatch   # account m4707,   -C cpu, premium
-```
-
-Agent and S3 features on compute nodes may need outbound network access. Provide a
-proxy via `MOFGEN_HTTPS_PROXY` (see NERSC docs for the current value) and put
-`ANTHROPIC_API_KEY=...` in a git-ignored `.env`. `premium`/`gpu_premium` bill at 2x —
-use `debug`/`gpu_debug` for smoke runs.
-
 ## Running Tests
 
 ```bash
