@@ -238,11 +238,49 @@ for details.
 
 ### Data access
 
-See **[docs/DATA_ACCESS.md](docs/DATA_ACCESS.md)** for how to obtain every dataset
-behind the paper's figures — Materials Project reference data (formation energy,
-bulk modulus) via the public API, the MOFGen_2025 MPContribs dataset, and the
-Zenodo dataset / figure source data. No keys are stored in this repo; you supply
-your own `MP_API_KEY`.
+How to obtain every dataset behind the paper's figures. **No API keys are stored
+in this repository** — you supply your own via the `MP_API_KEY` environment
+variable (or a local `.env`); get a free key at
+<https://next-gen.materialsproject.org/api#api-key>.
+
+**Materials Project reference data** (formation energy, bulk modulus) via the
+standard *public* API — no MPContribs/login required:
+
+```bash
+export MP_API_KEY="your_key_here"
+
+# Formation-energy reference (formation-energy comparison figure)
+python scripts/mp_reference_data.py formation-energy --output data/mp_formation_energy.csv
+
+# Bulk-modulus reference (elastic-property figure)
+python scripts/mp_reference_data.py bulk-modulus --output data/mp_bulk_modulus.csv
+```
+
+Restrict to MOF-relevant chemistries with e.g. `--elements Zn,C,H,O`.
+
+**MOFGen_2025 computed-property dataset** — see
+[Materials Project Data Extraction](#materials-project-data-extraction) below
+(pulled from MPContribs with the same `MP_API_KEY`).
+
+**Full generated dataset & per-figure source data** — for a login-free download:
+
+| Content | Location |
+| --- | --- |
+| Full generated MOF dataset (structures + computed properties) | Zenodo dataset — DOI `10.5281/zenodo.18452718` |
+| This code (release snapshot) | Zenodo software record for `tjaffrel/mofgen` |
+| Per-figure **source data** (raw numbers behind each plot) | deposited with the article's Supplementary Information / Source Data |
+
+**Which data underlies which figure**
+
+| Figure | Quantity | Source |
+| --- | --- | --- |
+| Linker chemical space | t-SNE coordinates | figure source data (CSV) |
+| Synthesizability | SCScore, SA Score, SMILES length, BR-SAScore | figure source data (CSV); BR-SAScore via the `BRSAScore` package |
+| Thermal / solvent stability | decomposition temperature, solvent-removal stability | r2SCAN MOF property set (this repo's workflow output) |
+| Formation energy | eV/atom, MOFGen vs. MP | MOFGen: workflow output · MP: `scripts/mp_reference_data.py formation-energy` |
+| Bulk modulus | GPa | Materials Project — `scripts/mp_reference_data.py bulk-modulus` (not re-deposited) |
+
+`.env` and any `*_key*` files are git-ignored; never commit your key.
 
 ### Materials Project Data Extraction
 
