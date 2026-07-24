@@ -236,6 +236,14 @@ The script uses the [`emmet-core`](https://github.com/materialsproject/emmet)
 objects. See [`examples/extract_trajectories.py`](examples/extract_trajectories.py)
 for details.
 
+### Data access
+
+See **[docs/DATA_ACCESS.md](docs/DATA_ACCESS.md)** for how to obtain every dataset
+behind the paper's figures — Materials Project reference data (formation energy,
+bulk modulus) via the public API, the MOFGen_2025 MPContribs dataset, and the
+Zenodo dataset / figure source data. No keys are stored in this repo; you supply
+your own `MP_API_KEY`.
+
 ### Materials Project Data Extraction
 
 Download and query the MOFGen_2025 dataset from [MPContribs](https://next-gen.materialsproject.org/contribs/projects/MOFGen_2025).
