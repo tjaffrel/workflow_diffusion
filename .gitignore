@@ -10,7 +10,9 @@ test_cifs
 workflow_output
 
 # Data output (top-level only — not mofgen_tools/data/)
-/data/
+/data/*
+# ...but keep the small, versioned figure source data
+!/data/figure_source_data/
 
 # Environment files with secrets
 .env
