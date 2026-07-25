@@ -1,12 +1,25 @@
 """Compute BR-SAScore for the 3 linker sources (same inputs as reviewer_br_sascore.py)
-and write a long-format CSV (group, metric, value) with metric 'BR-SAScore'."""
-import csv, warnings
+and write a long-format CSV (group, metric, value) with metric 'BR-SAScore'.
+
+Paths come from the environment for portability:
+  MOFGEN_SYNTH_SCORING_DIR  input dir (your `diffusion/synth_scoring` checkout)
+  MOFGEN_SOURCE_DATA_OUT    output dir (defaults to this repo's figure_source_data/)
+The BR-SAScore rows are written to Figure2bc_BRSAScore.csv; concatenate them into
+Figure2bc_synthesizability_scores.csv (see the folder README) to reproduce the
+committed gzipped file."""
+import os, csv, warnings
 from pathlib import Path
 warnings.filterwarnings("ignore")
 from BRSAScore import SAScorer
 
-DIFF = Path("/home/theoj/project/diffusion/synth_scoring")
-OUT  = Path("/home/theoj/project/articles/mofgen_natcom_2026/SourceData/Figure2/Figure2bc_BRSAScore.csv")
+DIFF = Path(os.environ.get("MOFGEN_SYNTH_SCORING_DIR", "")).expanduser()
+OUT  = Path(os.environ.get("MOFGEN_SOURCE_DATA_OUT",
+                           Path(__file__).resolve().parent.parent)).expanduser() / "Figure2bc_BRSAScore.csv"
+if not DIFF.is_dir():
+    raise SystemExit(
+        "Set MOFGEN_SYNTH_SCORING_DIR to your diffusion/synth_scoring checkout, e.g.\n"
+        "  export MOFGEN_SYNTH_SCORING_DIR=/path/to/diffusion/synth_scoring")
+OUT.parent.mkdir(parents=True, exist_ok=True)
 
 def exp_smiles():
     with open(DIFF / "structure_10143_processed" / "linkers_df.csv", newline="") as f:

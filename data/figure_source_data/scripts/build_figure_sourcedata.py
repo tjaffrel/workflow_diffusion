@@ -1,8 +1,21 @@
+"""Rebuild the Figure 2 t-SNE coordinates and the SCScore/SA Score/SMILES-length
+score CSV (and, for reference, the small Fig 3 diffusion subsets) from the
+diffusion `synth_scoring` analysis outputs.
+
+Paths are taken from the environment so the script is portable:
+  MOFGEN_SYNTH_SCORING_DIR  input dir (your `diffusion/synth_scoring` checkout)
+  MOFGEN_SOURCE_DATA_OUT    output dir (defaults to this repo's figure_source_data/)
+"""
 import json, gzip, csv, re, os
 from pathlib import Path
 
-DIFF = Path("/home/theoj/project/diffusion/synth_scoring")
-OUT  = Path("/home/theoj/project/articles/mofgen_natcom_2026/SourceData")
+DIFF = Path(os.environ.get("MOFGEN_SYNTH_SCORING_DIR", "")).expanduser()
+OUT  = Path(os.environ.get("MOFGEN_SOURCE_DATA_OUT",
+                           Path(__file__).resolve().parent.parent)).expanduser()
+if not DIFF.is_dir():
+    raise SystemExit(
+        "Set MOFGEN_SYNTH_SCORING_DIR to your diffusion/synth_scoring checkout, e.g.\n"
+        "  export MOFGEN_SYNTH_SCORING_DIR=/path/to/diffusion/synth_scoring")
 (OUT/"Figure2").mkdir(parents=True, exist_ok=True)
 (OUT/"Figure3").mkdir(parents=True, exist_ok=True)
 
@@ -23,8 +36,14 @@ for pc in re.findall(r'<g id="PathCollection_\d+">.*?</g>', svg, re.DOTALL):
             pts[GROUPS[hexc]].append((float(px), float(py)))
 
 def linfit(xs, ys):                       # least squares, no numpy
-    n=len(xs); sx=sum(xs); sy=sum(ys); sxx=sum(x*x for x in xs); sxy=sum(x*y for x,y in zip(xs,ys))
-    a=(n*sxy - sx*sy)/(n*sxx - sx*sx); b=(sy - a*sx)/n; return a,b
+    n=len(xs)
+    if n < 2:
+        raise ValueError("need >=2 calibration ticks to fit, got %d" % n)
+    sx=sum(xs); sy=sum(ys); sxx=sum(x*x for x in xs); sxy=sum(x*y for x,y in zip(xs,ys))
+    denom = n*sxx - sx*sx
+    if denom == 0:
+        raise ValueError("degenerate calibration: all tick pixel positions identical")
+    a=(n*sxy - sx*sy)/denom; b=(sy - a*sx)/n; return a,b
 
 def calib(axis, idx):
     vals, pix = [], []

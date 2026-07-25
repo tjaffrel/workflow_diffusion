@@ -14,12 +14,32 @@ UTF-8, tidy/long format. Group labels: **Experiments** / **LLM-generated** /
 
 ## Regenerating
 
-- `scripts/build_figure_sourcedata.py` — rebuilds the Fig 2 t-SNE + score CSVs
-  from the analysis outputs (edit the hard-coded input paths to your checkout).
-- `scripts/compute_brsascore.py` — recomputes the BR-SAScore column
-  (`pip install --user --break-system-packages --no-deps BRSAScore`; rdkit required).
-- Materials Project references (formation-energy comparison, bulk modulus) are
-  pulled live with [`scripts/mp_reference_data.py`](../../scripts/mp_reference_data.py).
+Both scripts read their paths from the environment (no hard-coded paths):
+
+```bash
+export MOFGEN_SYNTH_SCORING_DIR=/path/to/diffusion/synth_scoring
+export MOFGEN_SOURCE_DATA_OUT=$PWD          # optional; defaults to this folder
+```
+
+**`Figure2a_tSNE_coordinates.csv` and `Figure2bc_synthesizability_scores.csv.gz`:**
+1. `python scripts/build_figure_sourcedata.py` — writes `Figure2a_tSNE_coordinates.csv`
+   and `Figure2/Figure2bc_synthesizability_scores.csv` (SCScore, SA Score, SMILES length).
+2. `python scripts/compute_brsascore.py` — writes `Figure2bc_BRSAScore.csv`
+   (`pip install --user --break-system-packages --no-deps BRSAScore`; rdkit required).
+3. Concatenate the BR-SAScore rows into the score CSV and gzip it:
+   `tail -n +2 Figure2bc_BRSAScore.csv >> Figure2/Figure2bc_synthesizability_scores.csv && gzip -c Figure2/Figure2bc_synthesizability_scores.csv > Figure2bc_synthesizability_scores.csv.gz`
+
+**`Figure3ab_thermal_solvent_QMOF_reference.csv`** — the QMOF MOFSimplify
+thermal/solvent predictions (not produced by the scripts above; exported from the
+MOFSimplify prediction run).
+
+**`Figure3d_formation_energy_MOFGen_DFT.csv`** — pulled from MPContribs `MOFGen_2025`
+with [`scripts/mp_data_extraction.py`](../../scripts/mp_data_extraction.py); the
+Materials Project comparison distributions (formation energy, bulk modulus) come
+live from [`scripts/mp_reference_data.py`](../../scripts/mp_reference_data.py).
+
+(`build_figure_sourcedata.py` also emits small `Figure3/` diffusion subsets for
+reference; those partial subsets are **not** the committed Fig 3 files above.)
 
 ## Not included here (too large for git)
 
