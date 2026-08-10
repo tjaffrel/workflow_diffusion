@@ -1,18 +1,21 @@
-# Experimental PXRD — raw patterns (Figure 4 / synthesis)
+# Experimental PXRD — Figure 4
 
-Raw diffractometer output for the synthesized AI-MOFs (2θ vs intensity). Files
-are kept in their original instrument formats.
+`SourceData_Fig4.zip` bundles the experimental PXRD patterns (2θ vs. intensity)
+for the synthesized AI-MOFs, in their original instrument formats plus a
+plain-text export where possible.
 
-| File | Format | Tentative AI-MOF (⚠️ confirm) |
+| File in the zip | AI-MOF | Compound |
 | --- | --- | --- |
-| `AA_3-12-2_Zn-DMF_pxrd.txt` | `Angle,Intensity` (CSV-like) | AI-MOF-4 (zinc dimethyl fumarate, DMF) |
-| `Theo-Fumeric-1-DMF-Wet-2.ras` | Rigaku `.ras` (2θ intensity 1.0 per line) | AI-MOF-3 or 4 (zinc dimethyl fumarate) |
-| `Al_L36_PXRD.dat` | GSAS FXYE | AI-MOF-5 (aluminum dimethyl fumarate) |
-| `Perylene_Zn_MOF_PXRD.opju` | OriginLab project (binary) | AI-MOF-2 (perylene-based) |
+| `AI-MOF-1_PXRD.txt` (+ `.raw`) | AI-MOF-1 | zinc muconate |
+| `AI-MOF-2_PXRD.opju` | AI-MOF-2 | perylene-based |
+| `AI-MOF-3_PXRD.txt` | AI-MOF-3 | zinc dimethyl fumarate (DEF solvent) |
+| `AI-MOF-4_PXRD.ras` | AI-MOF-4 | zinc dimethyl fumarate (DMF solvent; sample SM621B) |
+| `AI-MOF-5_PXRD.dat` | AI-MOF-5 | aluminium dimethyl fumarate |
 
-**To confirm / still missing:** the mapping above is inferred from filenames and
-should be verified by the authors. Raw PXRD for **AI-MOF-1** (zinc muconate),
-**AI-MOF-6** and **AI-MOF-7** (triazole mixed-linker) is **not yet located**.
-
-`.opju` is a proprietary OriginLab format; if possible, re-export it as a plain
-two-column (2θ, intensity) `.txt`/`.csv` for a fully open record.
+Notes:
+- AI-MOF-1 is provided both as the Bruker raw file (`.raw`, RAW1.01) and as a
+  2-column `2theta,intensity` text export (`.txt`); the experimental intensities
+  are normalized to 10000.
+- AI-MOF-3/4/5 are plain ASCII (`.txt`, Rigaku `.ras`, GSAS `.dat`).
+- AI-MOF-2 is an OriginLab project (`.opju`); export the worksheet to ASCII/CSV
+  to read it outside Origin.
